@@ -14,6 +14,8 @@ void Cell::InitiateQuans()
     quants["alpha"] = 1;
     quants["n"] = 1.58;
     quants["Ks"] = 0.01;
+    quants["epsilon"] = 0.01;
+    Boundary.type = boundaryType::none;
 }
 
 double Cell::getValue(const string quan) const
@@ -47,4 +49,11 @@ double Cell::Theta(const _time &t) const
     {
         return quants.at("theta");
     }
+}
+
+void Cell::SetBoundary(boundaryType typ, edge boundaryEdge, const double &value)
+{
+    Boundary.boundary_edge = boundaryEdge;
+    Boundary.type = typ;
+    Boundary.value = value;
 }

@@ -7,8 +7,6 @@
 
 using namespace std;
 
-enum class edge {left, right, up, down};
-
 class Grid
 {
 public:
@@ -16,7 +14,7 @@ public:
     Grid(int nz, int nr, double depth, double radius);
     CVector_arma Residual(const CVector_arma &X, const double &dt);
     void SetStateVariable(const CVector_arma &X);
-    double getVal(int i, int j, const string &val, const edge &ej);
+    double getVal(int i, int j, const string &val, const edge &ej) const;
 private:
     vector<vector<Cell>> cells;
     unsigned int nz;
@@ -24,6 +22,7 @@ private:
     double dz;
     double dr;
     double K(int i,int j,const edge &ej) const;
+    double D(int i,int j,const edge &ej) const;
     double invC(int i,int j,const edge &ej) const;
 };
 

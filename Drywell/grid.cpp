@@ -23,7 +23,13 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
     for (unsigned int i=0; i<nz; i++)
         for (unsigned int j=0; j<nr; j++)
         {
-
+            if (cells[i][j].Boundary.type==boundaryType::none)
+            {   double r = (j+0.5)*dr;
+                Res[j+nz*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
+                Res[j+nz*i] += -1/r*pow(1.0/dr,2)*((r+dr/2)*D(i,j,edge::right)*(cells[i][j+1].Theta(_time::current)-cells[i][j].Theta(_time::current))-(r-dr/2)*D(i,j,edge::left)*(cells[i][j].Theta(_time::current)-cells[i][j-1].Theta(_time::current)));
+                Res[j+nz*i] += -pow(1.0/dz,2)*(D(i,j,edge::down)*(cells[i+1][j].Theta(_time::current)-cells[i][j].Theta(_time::current))-D(i,j,edge::up)*(cells[i][j].Theta(_time::current)-cells[i-1][j].Theta(_time::current)));
+                Res[j+nz*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
+            }
         }
     return Res;
 }
@@ -36,27 +42,33 @@ void Grid::SetStateVariable(const CVector_arma &X)
 
 }
 
+double Grid::D(int i,int j,const edge &ej) const
+{
+    return K(i,j,ej)*invC(i,j,ej);
+}
+
 double Grid::K(int i,int j,const edge &ej) const
 {
-    double Se;
-    if (ej == edge::left)
-        Se = (max(cells[i][j].Theta(_time::current),cells[i][j-1].Theta(_time::current))-0.5*cells[i][j].getValue("theta_r")-0.5*cells[i][j-1].getValue("theta_r"))/(0.5*cells[i][j].getValue("theta_s")+0.5*cells[i][j-1].getValue("theta_s")-0.5*cells[i][j].getValue("theta_r")-0.5*cells[i][j-1].getValue("theta_r"));
-    else if (ej == edge::right)
-        Se = (max(cells[i][j].Theta(_time::current),cells[i][j-1].Theta(_time::current))-0.5*cells[i][j].getValue("theta_r")-0.5*cells[i][j+1].getValue("theta_r"))/(0.5*cells[i][j].getValue("theta_s")+0.5*cells[i][j+1].getValue("theta_s")-0.5*cells[i][j].getValue("theta_r")-0.5*cells[i][j+1].getValue("theta_r"));
-    else if (ej == edge::down)
-        Se = (max(cells[i][j].Theta(_time::current),cells[i+1][j].Theta(_time::current))-0.5*cells[i][j].getValue("theta_r")-0.5*cells[i+1][j].getValue("theta_r"))/(0.5*cells[i][j].getValue("theta_s")+0.5*cells[i+1][j].getValue("theta_s")-0.5*cells[i][j].getValue("theta_r")-0.5*cells[i+1][j].getValue("theta_r"));
-    else if (ej == edge::up)
-        Se = (max(cells[i][j].Theta(_time::current),cells[i-1][j].Theta(_time::current))-0.5*cells[i][j].getValue("theta_r")-0.5*cells[i-1][j].getValue("theta_r"))/(0.5*cells[i][j].getValue("theta_s")+0.5*cells[i-1][j].getValue("theta_s")-0.5*cells[i][j].getValue("theta_r")-0.5*cells[i-1][j].getValue("theta_r"));
-
+    double Se = max((max(cells[i][j].Theta(_time::current),cells[i][j-1].Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6);
+    double m = 1.0-1.0/getVal(i,j,"n",ej);
+    double K = pow(Se,0.5)*getVal(i,j,"Ks",ej)*pow(1-pow(1-pow(Se,1.0/m),m),2);
+    return K;
 
 }
 
 double Grid::invC(int i,int j,const edge &ej) const
 {
-
+    double C;
+    double Se = max((max(cells[i][j].Theta(_time::current),cells[i][j-1].Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6);
+    double m = 1.0-1.0/getVal(i,j,"n",ej);
+    if (getVal(i,j,"theta",ej)>getVal(i,j,"theta_s",ej))
+        C = 1.0/getVal(i,j,"epsilon",ej);
+    else
+        C = 1.0/getVal(i,j,"alpha",ej)/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej))*pow(pow(Se,-m)-1,-m)*pow(Se,-m-1);
+    return C;
 }
 
-double Grid::getVal(int i, int j, const string &val, const edge &ej)
+double Grid::getVal(int i, int j, const string &val, const edge &ej) const
 {
     if (ej == edge::left)
         return 0.5*(cells[i][j].getValue(val)+cells[i][j-1].getValue(val));

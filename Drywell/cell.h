@@ -29,6 +29,7 @@ public:
     double getValue(const string quan) const;
     boundary Boundary;
     void SetBoundary(boundaryType typ, edge boundaryEdge, const double &value = 0);
+    double H(_time t) const;
 private:
     map<string,double> quants;
     Grid *parent;

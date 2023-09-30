@@ -30,6 +30,23 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
                 Res[j+nz*i] += -pow(1.0/dz,2)*(D(i,j,edge::down)*(cells[i+1][j].Theta(_time::current)-cells[i][j].Theta(_time::current))-D(i,j,edge::up)*(cells[i][j].Theta(_time::current)-cells[i-1][j].Theta(_time::current)));
                 Res[j+nz*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
             }
+            else if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
+            {
+                Res[j+nz*i] = cells[i][j].Theta(_time::current) - cells[i][j].Boundary.value;
+            }
+            else if (cells[i][j].Boundary.type==boundaryType::fixedpressure)
+            {
+                Res[j+nz*i] = cells[i][j].H(_time::current) - cells[i][j].Boundary.value;
+            }
+            else if (cells[i][j].Boundary.type==boundaryType::gradient)
+            {
+                if (cells[i][j].Boundary.boundary_edge == edge::down || cells[i][j].Boundary.boundary_edge == edge::up)
+                    Res[i+nz*j] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge)->Theta(_time::current))/dz;
+                else
+                    Res[i+nz*j] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge)->Theta(_time::current))/dr;
+
+            }
+
         }
     return Res;
 }
@@ -78,5 +95,18 @@ double Grid::getVal(int i, int j, const string &val, const edge &ej) const
         return 0.5*(cells[i][j].getValue(val)+cells[i+1][j].getValue(val));
     else
         return 0.5*(cells[i][j].getValue(val)+cells[i-1][j].getValue(val));
+
+}
+
+Cell* Grid::Neighbour(int i, int j, const edge &ej)
+{
+    if (ej == edge::down)
+        return &cells[i-1][j];
+    else if (ej == edge::up)
+        return &cells[i+1][j];
+    else if (ej == edge::left)
+        return &cells[i][j+1];
+    else if (ej == edge::right)
+        return &cells[i][j-1];
 
 }

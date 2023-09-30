@@ -24,6 +24,7 @@ private:
     double K(int i,int j,const edge &ej) const;
     double D(int i,int j,const edge &ej) const;
     double invC(int i,int j,const edge &ej) const;
+    Cell* Neighbour(int i, int j, const edge &ej);
 };
 
 #endif // GRID_H

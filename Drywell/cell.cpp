@@ -1,4 +1,5 @@
 #include "cell.h"
+#include <cmath>
 
 Cell::Cell()
 {
@@ -56,4 +57,16 @@ void Cell::SetBoundary(boundaryType typ, edge boundaryEdge, const double &value)
     Boundary.boundary_edge = boundaryEdge;
     Boundary.type = typ;
     Boundary.value = value;
+}
+
+double Cell::H(_time t) const
+{
+    double Se = (Theta(t)-quants.at("theta_r"))/(quants.at("theta_s")-quants.at("theta_r"));
+    double H;
+    if (Se<1)
+       H = -1.0/quants.at("alpha")*pow(pow(Se,-(quants.at("n")-1)/quants.at("n")-1),quants.at("n"));
+    else
+       H = Se/quants.at("epsilon");
+
+    return H;
 }

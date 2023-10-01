@@ -76,7 +76,7 @@ double Grid::D(int i,int j,const edge &ej) const
 
 double Grid::K(int i,int j,const edge &ej) const
 {
-    double Se = max((max(cells[i][j].Theta(_time::current),cells[i][j-1].Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6);
+    double Se = min(max((max(cells[i][j].Theta(_time::current),cells[i][j-1].Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6),0.99999);
     double m = 1.0-1.0/getVal(i,j,"n",ej);
     double K = pow(Se,0.5)*getVal(i,j,"Ks",ej)*pow(1-pow(1-pow(Se,1.0/m),m),2);
     return K;
@@ -86,7 +86,7 @@ double Grid::K(int i,int j,const edge &ej) const
 double Grid::invC(int i,int j,const edge &ej) const
 {
     double C;
-    double Se = max((max(cells[i][j].Theta(_time::current),cells[i][j-1].Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6);
+    double Se = min(max((max(cells[i][j].Theta(_time::current),cells[i][j-1].Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6),0.99999);
     double m = 1.0-1.0/getVal(i,j,"n",ej);
     if (getVal(i,j,"theta",ej)>getVal(i,j,"theta_s",ej))
         C = 1.0/getVal(i,j,"epsilon",ej);
@@ -140,6 +140,7 @@ bool Grid::OneStepSolve(const double &dt)
 {
     CVector_arma X = GetStateVariable();
     CVector_arma Res = Residual(X,dt);
+    X.writetofile("/home/arash/Downloads/X0.txt");
     double err_0 = Res.norm2();
     double err=err_0*10;
     while (err/err_0>1e-6)

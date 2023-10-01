@@ -59,6 +59,16 @@ void Grid::SetStateVariable(const CVector_arma &X)
 
 }
 
+CVector_arma Grid::GetStateVariable() const
+{
+    CVector_arma X(nr*nz);
+    for (unsigned int i=0; i<nz; i++)
+        for (unsigned int j=0; j<nr; j++)
+            X[j+nz*i] = cells[i][j].Theta(_time::current);
+
+    return X;
+}
+
 double Grid::D(int i,int j,const edge &ej) const
 {
     return K(i,j,ej)*invC(i,j,ej);
@@ -109,4 +119,38 @@ Cell* Grid::Neighbour(int i, int j, const edge &ej)
     else if (ej == edge::right)
         return &cells[i][j-1];
 
+}
+
+CMatrix_arma Grid::Jacobian(const CVector_arma &X, const double &dt)
+{
+    CVector_arma F_base = Residual(X,dt);
+    CMatrix_arma M(X.getsize(),X.getsize());
+    for (unsigned int i=0; i<X.getsize(); i++)
+    {
+        CVector_arma X1 = X;
+        X1[i]+=1e-6;
+        CVector_arma F1 = Residual(X1,dt);
+        for (int j=0; j<X.num; j++)
+            M(j,i) = (F1[j]-F_base[j])/1e-6;
+    }
+    return M;
+}
+
+bool Grid::OneStepSolve(const double &dt)
+{
+    CVector_arma X = GetStateVariable();
+    CVector_arma Res = Residual(X,dt);
+    double err_0 = Res.norm2();
+    double err=err_0*10;
+    while (err/err_0>1e-6)
+    {
+        CMatrix_arma J = Jacobian(X,dt);
+        X-=Res/J;
+        X.writetofile("/home/arash/Downloads/X.txt");
+        J.writetofile("/home/arash/Downloads/J.txt");
+        Res = Residual(X,dt);
+        Res.writetofile("/home/arash/Downloads/R.txt");
+        err=Res.norm2();
+    }
+    return true;
 }

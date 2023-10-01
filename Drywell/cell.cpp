@@ -8,7 +8,7 @@ Cell::Cell()
 
 void Cell::InitiateQuans()
 {
-    quants["theta"] = 1;
+    quants["theta"] = 0.2;
     quants["theta_past"] = 1;
     quants["theta_s"] = 0.4;
     quants["theta_r"] = 0.08;

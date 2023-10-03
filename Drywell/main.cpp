@@ -15,14 +15,14 @@ int main()
             G.cell(i,0)->Boundary.value = 0.4;
             G.cell(i,nr-1)->Boundary.type = boundaryType::fixedmoisture;
             G.cell(i,nr-1)->Boundary.value = 0.4;
-            G.cell(0,i)->Boundary.type = boundaryType::fixedmoisture;
-            G.cell(0,i)->Boundary.value = 0.4;
-            G.cell(nz-1,i)->Boundary.type = boundaryType::fixedmoisture;
-            G.cell(nz-1,i)->Boundary.value = 0.4;
+            G.cell(0,j)->Boundary.type = boundaryType::fixedmoisture;
+            G.cell(0,j)->Boundary.value = 0.4;
+            G.cell(nz-1,j)->Boundary.type = boundaryType::fixedmoisture;
+            G.cell(nz-1,j)->Boundary.value = 0.4;
          }
     }
 
-    G.OneStepSolve(0.001);
+    G.OneStepSolve(0.1);
     G.write_to_vtp("/home/arash/Projects/Drywell_Results/theta.vtp");
     cout<<"done!"<<endl;
 }

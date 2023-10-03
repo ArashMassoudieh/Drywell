@@ -11,8 +11,8 @@ Grid::Grid(int _nz, int _nr, double depth, double radius)
 {
     nz = _nz;
     nr = _nr;
-    dz = depth/nr;
-    dr = radius/nz;
+    dz = depth/nz;
+    dr = radius/nr;
     cells.resize(nz);
     for (unsigned int i=0; i<nz; i++)
         cells[i].resize(nr);
@@ -27,25 +27,25 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
         {
             if (cells[i][j].Boundary.type==boundaryType::none)
             {   double r = (j+0.5)*dr;
-                Res[j+nz*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
-                Res[j+nz*i] += -1/r*pow(1.0/dr,2)*((r+dr/2)*D(i,j,edge::right)*(cells[i][j+1].Theta(_time::current)-cells[i][j].Theta(_time::current))-(r-dr/2)*D(i,j,edge::left)*(cells[i][j].Theta(_time::current)-cells[i][j-1].Theta(_time::current)));
-                Res[j+nz*i] += -pow(1.0/dz,2)*(D(i,j,edge::down)*(cells[i+1][j].Theta(_time::current)-cells[i][j].Theta(_time::current))-D(i,j,edge::up)*(cells[i][j].Theta(_time::current)-cells[i-1][j].Theta(_time::current)));
-                Res[j+nz*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
+                Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
+                Res[j+nr*i] += -1/r*pow(1.0/dr,2)*((r+dr/2)*D(i,j,edge::right)*(cells[i][j+1].Theta(_time::current)-cells[i][j].Theta(_time::current))-(r-dr/2)*D(i,j,edge::left)*(cells[i][j].Theta(_time::current)-cells[i][j-1].Theta(_time::current)));
+                Res[j+nr*i] += -pow(1.0/dz,2)*(D(i,j,edge::down)*(cells[i+1][j].Theta(_time::current)-cells[i][j].Theta(_time::current))-D(i,j,edge::up)*(cells[i][j].Theta(_time::current)-cells[i-1][j].Theta(_time::current)));
+                Res[j+nr*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
             }
             else if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
             {
-                Res[j+nz*i] = cells[i][j].Theta(_time::current) - cells[i][j].Boundary.value;
+                Res[j+nr*i] = cells[i][j].Theta(_time::current) - cells[i][j].Boundary.value;
             }
             else if (cells[i][j].Boundary.type==boundaryType::fixedpressure)
             {
-                Res[j+nz*i] = cells[i][j].H(_time::current) - cells[i][j].Boundary.value;
+                Res[j+nr*i] = cells[i][j].H(_time::current) - cells[i][j].Boundary.value;
             }
             else if (cells[i][j].Boundary.type==boundaryType::gradient)
             {
                 if (cells[i][j].Boundary.boundary_edge == edge::down || cells[i][j].Boundary.boundary_edge == edge::up)
-                    Res[i+nz*j] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge)->Theta(_time::current))/dz;
+                    Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge)->Theta(_time::current))/dz;
                 else
-                    Res[i+nz*j] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge)->Theta(_time::current))/dr;
+                    Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge)->Theta(_time::current))/dr;
 
             }
 
@@ -57,7 +57,7 @@ void Grid::SetStateVariable(const CVector_arma &X)
 {
     for (unsigned int i=0; i<nz; i++)
         for (unsigned int j=0; j<nr; j++)
-            cells[i][j].SetTheta(X[j+nz*i],_time::current);
+            cells[i][j].SetTheta(X[j+nr*i],_time::current);
 
 }
 
@@ -66,7 +66,7 @@ CVector_arma Grid::GetStateVariable() const
     CVector_arma X(nr*nz);
     for (unsigned int i=0; i<nz; i++)
         for (unsigned int j=0; j<nr; j++)
-            X[j+nz*i] = cells[i][j].Theta(_time::current);
+            X[j+nr*i] = cells[i][j].Theta(_time::current);
 
     return X;
 }
@@ -132,7 +132,7 @@ CMatrix_arma Grid::Jacobian(const CVector_arma &X, const double &dt)
         CVector_arma X1 = X;
         X1[i]+=1e-6;
         CVector_arma F1 = Residual(X1,dt);
-        for (int j=0; j<X.num; j++)
+        for (unsigned int j=0; j<X.num; j++)
             M(j,i) = (F1[j]-F_base[j])/1e-6;
     }
     return M;
@@ -141,22 +141,56 @@ CMatrix_arma Grid::Jacobian(const CVector_arma &X, const double &dt)
 bool Grid::OneStepSolve(const double &dt)
 {
     CVector_arma X = GetStateVariable();
+    CVector_arma X0 = X;
     CVector_arma Res = Residual(X,dt);
-    Res.writetofile("/home/arash/Downloads/R0.txt");
-    X.writetofile("/home/arash/Downloads/X0.txt");
     double err_0 = Res.norm2();
     double err=err_0*10;
+    Solution_State.number_of_iterations = 0;
+    int count_error_expanding = 0;
+
     while (err/err_0>1e-6)
     {
         CMatrix_arma J = Jacobian(X,dt);
         CVector_arma dx = Res/J;
-        X.writetofile("/home/arash/Downloads/dx.txt");
         X-=dx;
-        X.writetofile("/home/arash/Downloads/X.txt");
-        J.writetofile("/home/arash/Downloads/J.txt");
         Res = Residual(X,dt);
-        Res.writetofile("/home/arash/Downloads/R.txt");
-        err=Res.norm2();
+        double err1=Res.norm2();
+        if (err1>err)
+        {
+            count_error_expanding++;
+        }
+        err = err1;
+
+        Solution_State.number_of_iterations ++;
+        if (Solution_State.number_of_iterations>Solution_State.max_iterations || count_error_expanding>2)
+        {
+            SetStateVariable(X0);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Grid::Solve(const double &t0, const double &dt0, const double &t_end)
+{
+    Solution_State.t = t0;
+    Solution_State.dt = dt0;
+    while (Solution_State.t + Solution_State.dt<t_end)
+    {
+        if (!OneStepSolve(Solution_State.dt))
+        {
+            Solution_State.dt*=Solution_State.dt_scale_factor_fail;
+        }
+        else
+            Solution_State.t += Solution_State.dt;
+        if (Solution_State.number_of_iterations>Solution_State.NI_max)
+        {
+            Solution_State.dt*=Solution_State.dt_scale_factor;
+        }
+        else if (Solution_State.number_of_iterations<Solution_State.NI_min)
+        {
+            Solution_State.dt/=Solution_State.dt_scale_factor;
+        }
     }
     return true;
 }
@@ -177,19 +211,19 @@ void Grid::write_to_vtp(const string &name) const
 
 
 
-        for (unsigned int j = 0; j < cells.size(); j++)
-            for (unsigned int i = 0; i < cells[j].size(); i++)
-        {
-            xx = dr*(j+0.5);
-            yy = dz*(i+0.5);
-            zz = cells[j][i].Theta(_time::current);
+        for (unsigned int i = 0; i < cells.size(); i++)
+            for (unsigned int j = 0; j < cells[i].size(); j++)
+            {
+                yy = -dz*(i+0.5);
+                xx = dr*(j+0.5);
+                zz = cells[i][j].Theta(_time::current);
 
 
-            float t[1] = { float(zz) };
-            points_3->InsertNextPoint(xx, yy, zz);
-            values->InsertNextTupleValue(t);
+                float t[1] = { float(zz) };
+                points_3->InsertNextPoint(xx, yy, zz);
+                values->InsertNextTupleValue(t);
 
-        }
+            }
 
 
         // Add the grid points to a polydata object

@@ -12,9 +12,9 @@ void Cell::InitiateQuans()
     quants["theta_past"] = 0.2;
     quants["theta_s"] = 0.4;
     quants["theta_r"] = 0.08;
-    quants["alpha"] = 1;
+    quants["alpha"] = 1e10;
     quants["n"] = 1.58;
-    quants["Ks"] = 0.5;
+    quants["Ks"] = 3;
     quants["epsilon"] = 0.01;
     Boundary.type = boundaryType::none;
 }

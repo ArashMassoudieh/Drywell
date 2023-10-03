@@ -22,6 +22,7 @@ public:
     {
         return &cells[i][j];
     }
+    void write_to_vtp(const string &name) const;
 private:
     vector<vector<Cell>> cells;
     unsigned int nz;

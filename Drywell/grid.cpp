@@ -1,4 +1,6 @@
 #include "grid.h"
+#include "vtk.h"
+
 
 Grid::Grid()
 {
@@ -140,13 +142,16 @@ bool Grid::OneStepSolve(const double &dt)
 {
     CVector_arma X = GetStateVariable();
     CVector_arma Res = Residual(X,dt);
+    Res.writetofile("/home/arash/Downloads/R0.txt");
     X.writetofile("/home/arash/Downloads/X0.txt");
     double err_0 = Res.norm2();
     double err=err_0*10;
     while (err/err_0>1e-6)
     {
         CMatrix_arma J = Jacobian(X,dt);
-        X-=Res/J;
+        CVector_arma dx = Res/J;
+        X.writetofile("/home/arash/Downloads/dx.txt");
+        X-=dx;
         X.writetofile("/home/arash/Downloads/X.txt");
         J.writetofile("/home/arash/Downloads/J.txt");
         Res = Residual(X,dt);
@@ -155,3 +160,136 @@ bool Grid::OneStepSolve(const double &dt)
     }
     return true;
 }
+
+#ifdef use_VTK
+void Grid::write_to_vtp(const string &name) const
+{
+    vtkSmartPointer<vtkPoints> points_3 =
+            vtkSmartPointer<vtkPoints>::New();
+
+        double xx, yy, zz;
+        vtkSmartPointer<vtkFloatArray> values =
+            vtkSmartPointer<vtkFloatArray>::New();
+
+        values->SetNumberOfComponents(1);
+
+        values->SetName("Moisture Content");
+
+
+
+        for (unsigned int j = 0; j < cells.size(); j++)
+            for (unsigned int i = 0; i < cells[j].size(); i++)
+        {
+            xx = dr*(j+0.5);
+            yy = dz*(i+0.5);
+            zz = cells[j][i].Theta(_time::current);
+
+
+            float t[1] = { float(zz) };
+            points_3->InsertNextPoint(xx, yy, zz);
+            values->InsertNextTupleValue(t);
+
+        }
+
+
+        // Add the grid points to a polydata object
+        vtkSmartPointer<vtkPolyData> inputPolyData =
+            vtkSmartPointer<vtkPolyData>::New();
+        inputPolyData->SetPoints(points_3);
+
+        // Triangulate the grid points
+        vtkSmartPointer<vtkDelaunay2D> delaunay =
+            vtkSmartPointer<vtkDelaunay2D>::New();
+    #if VTK_MAJOR_VERSION <= 5
+        delaunay->SetInput(inputPolyData);
+    #else
+        delaunay->SetInputData(inputPolyData);
+    #endif
+        delaunay->Update();
+        vtkPolyData* outputPolyData = delaunay->GetOutput();
+
+        double bounds[6];
+        outputPolyData->GetBounds(bounds);
+
+        // Find min and max z
+        double minz = bounds[4];
+        double maxz = bounds[5];
+
+        // Create the color map
+        vtkSmartPointer<vtkLookupTable> colorLookupTable =
+            vtkSmartPointer<vtkLookupTable>::New();
+        colorLookupTable->SetTableRange(minz, maxz);
+        colorLookupTable->Build();
+
+        // Generate the colors for each point based on the color map
+        vtkSmartPointer<vtkUnsignedCharArray> colors_2 =
+            vtkSmartPointer<vtkUnsignedCharArray>::New();
+        colors_2->SetNumberOfComponents(3);
+        colors_2->SetName("Colors");
+
+
+        for (int i = 0; i < outputPolyData->GetNumberOfPoints(); i++)
+        {
+            double p[3];
+            outputPolyData->GetPoint(i, p);
+
+            double dcolor[3];
+            colorLookupTable->GetColor(p[2], dcolor);
+
+            unsigned char color[3];
+            for (unsigned int j = 0; j < 3; j++)
+            {
+                color[j] = static_cast<unsigned char>(255.0 * dcolor[j]);
+            }
+            //std::cout << "color: "
+            //	<< (int)color[0] << " "
+            //	<< (int)color[1] << " "
+            //	<< (int)color[2] << std::endl;
+
+            colors_2->InsertNextTupleValue(color);
+        }
+
+        outputPolyData->GetPointData()->SetScalars(values);
+
+
+        //Append the two meshes
+        vtkSmartPointer<vtkAppendPolyData> appendFilter =
+            vtkSmartPointer<vtkAppendPolyData>::New();
+    #if VTK_MAJOR_VERSION <= 5
+        appendFilter->AddInputConnection(input1->GetProducerPort());
+        appendFilter->AddInputConnection(input2->GetProducerPort());
+    #else
+        //appendFilter->AddInputData(polydata);
+        //appendFilter->AddInputData(polydata_1);
+        appendFilter->AddInputData(outputPolyData);
+    #endif
+        appendFilter->Update();
+
+
+        // Visualization
+        vtkSmartPointer<vtkPolyDataMapper> mapper =
+            vtkSmartPointer<vtkPolyDataMapper>::New();
+    #if VTK_MAJOR_VERSION <= 5
+        mapper->SetInputConnection(polydata->GetProducerPort());
+    #else
+        mapper->SetInputConnection(appendFilter->GetOutputPort());
+        //mapper->SetInputData(polydata_1);
+    #endif
+
+        vtkSmartPointer<vtkActor> actor =
+            vtkSmartPointer<vtkActor>::New();
+        actor->SetMapper(mapper);
+        actor->GetProperty()->SetPointSize(5);
+
+        vtkSmartPointer<vtkXMLPolyDataWriter> writer =
+            vtkSmartPointer<vtkXMLPolyDataWriter>::New();
+        writer->SetFileName(name.c_str());
+        writer->SetInputData(mapper->GetInput());
+        // This is set so we can see the data in a text editor.
+        writer->SetDataModeToAscii();
+        writer->Write();
+
+}
+
+#endif
+

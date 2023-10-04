@@ -22,15 +22,46 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
 {
     CVector_arma Res(nr*nz);
     SetStateVariable(X);
+    CMatrix Pressure = H();
+    CMatrix Saturation = Se();
     for (unsigned int i=0; i<nz; i++)
         for (unsigned int j=0; j<nr; j++)
         {
             if (cells[i][j].Boundary.type==boundaryType::none)
-            {   double r = (j+0.5)*dr;
+            {
+                double r = (j+0.5)*dr;
                 Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
-                Res[j+nr*i] += -1/r*pow(1.0/dr,2)*((r+dr/2)*D(i,j,edge::right)*(cells[i][j+1].Theta(_time::current)-cells[i][j].Theta(_time::current))-(r-dr/2)*D(i,j,edge::left)*(cells[i][j].Theta(_time::current)-cells[i][j-1].Theta(_time::current)));
-                Res[j+nr*i] += -pow(1.0/dz,2)*(D(i,j,edge::down)*(cells[i+1][j].Theta(_time::current)-cells[i][j].Theta(_time::current))-D(i,j,edge::up)*(cells[i][j].Theta(_time::current)-cells[i-1][j].Theta(_time::current)));
+                if (fabs(Res[j+nr*i])>100000)
+                {
+                    cout<<"Big Res!"<<endl;
+                }
+                Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::left)->H(_time::current));
+                if (fabs(Res[j+nr*i])>100000)
+                {
+                    cout<<"Big Res!"<<endl;
+                }
+                Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::right)->H(_time::current));
+                if (fabs(Res[j+nr*i])>100000)
+                {
+                    cout<<"Big Res!"<<endl;
+                }
+                //Res[j+nr*i] += -1/r*pow(1.0/dr,2)*((r+dr/2)*D(i,j,edge::right)*(cells[i][j+1].Theta(_time::current)-cells[i][j].Theta(_time::current))-(r-dr/2)*D(i,j,edge::left)*(cells[i][j].Theta(_time::current)-cells[i][j-1].Theta(_time::current)));
+                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current));
+                if (fabs(Res[j+nr*i])>100000)
+                {
+                    cout<<"Big Res!"<<endl;
+                }
+                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::down)->H(_time::current));
+                if (fabs(Res[j+nr*i])>100000)
+                {
+                    cout<<"Big Res!"<<endl;
+                }
+                //Res[j+nr*i] += -pow(1.0/dz,2)*(D(i,j,edge::down)*(cells[i+1][j].Theta(_time::current)-cells[i][j].Theta(_time::current))-D(i,j,edge::up)*(cells[i][j].Theta(_time::current)-cells[i-1][j].Theta(_time::current)));
                 Res[j+nr*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
+                if (fabs(Res[j+nr*i])>100000)
+                {
+                    cout<<"Big Res!"<<endl;
+                }
             }
             else if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
             {
@@ -43,9 +74,9 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
             else if (cells[i][j].Boundary.type==boundaryType::gradient)
             {
                 if (cells[i][j].Boundary.boundary_edge == edge::down || cells[i][j].Boundary.boundary_edge == edge::up)
-                    Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge)->Theta(_time::current))/dz;
+                    Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge, true)->Theta(_time::current))/dz;
                 else
-                    Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge)->Theta(_time::current))/dr;
+                    Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge, true)->Theta(_time::current))/dr;
 
             }
 
@@ -110,16 +141,28 @@ double Grid::getVal(int i, int j, const string &val, const edge &ej) const
 
 }
 
-Cell* Grid::Neighbour(int i, int j, const edge &ej)
+Cell* Grid::Neighbour(int i, int j, const edge &ej, bool op)
 {
-    if (ej == edge::down)
-        return &cells[i-1][j];
-    else if (ej == edge::up)
-        return &cells[i+1][j];
-    else if (ej == edge::left)
-        return &cells[i][j+1];
-    else if (ej == edge::right)
-        return &cells[i][j-1];
+    if (op)
+    {   if (ej == edge::down)
+            return &cells[i-1][j];
+        else if (ej == edge::up)
+            return &cells[i+1][j];
+        else if (ej == edge::left)
+            return &cells[i][j+1];
+        else if (ej == edge::right)
+            return &cells[i][j-1];
+    }
+    else
+    {   if (ej == edge::down)
+            return &cells[i+1][j];
+        else if (ej == edge::up)
+            return &cells[i-1][j];
+        else if (ej == edge::left)
+            return &cells[i][j-1];
+        else if (ej == edge::right)
+            return &cells[i][j+1];
+    }
 
 }
 
@@ -148,7 +191,7 @@ bool Grid::OneStepSolve(const double &dt)
     Solution_State.number_of_iterations = 0;
     int count_error_expanding = 0;
 
-    while (err/err_0>1e-6)
+    while (err/err_0>1e-3)
     {
         CMatrix_arma J = Jacobian(X,dt);
         CVector_arma dx = Res/J;
@@ -162,8 +205,9 @@ bool Grid::OneStepSolve(const double &dt)
         err = err1;
 
         Solution_State.number_of_iterations ++;
-        if (Solution_State.number_of_iterations>Solution_State.max_iterations || count_error_expanding>2)
+        if (Solution_State.number_of_iterations>Solution_State.max_iterations || count_error_expanding>5 || !(err==err))
         {
+            cout<<"Interations: "<<Solution_State.number_of_iterations<<", Error Expanding: "<<count_error_expanding<<", Error: "<<err<< ",Ini Error:"<< err_0<<" dt: "<<dt<< endl;
             SetStateVariable(X0);
             return false;
         }
@@ -183,7 +227,7 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end)
         }
         else
             Solution_State.t += Solution_State.dt;
-        if (Solution_State.number_of_iterations>Solution_State.NI_max)
+        if (Solution_State.number_of_iterations>Solution_State.NI_max && Solution_State.dt>1e-5)
         {
             Solution_State.dt*=Solution_State.dt_scale_factor;
         }
@@ -329,4 +373,26 @@ void Grid::write_to_vtp(const string &name) const
 }
 
 #endif
+
+CMatrix Grid::H()
+{
+    CMatrix out(nz,nr);
+    for (unsigned int i = 0; i < cells.size(); i++)
+        for (unsigned int j = 0; j < cells[i].size(); j++)
+        {
+            out[i][j] = cells[i][j].H(_time::current);
+        }
+    return out;
+}
+
+CMatrix Grid::Se()
+{
+    CMatrix out(nz,nr);
+    for (unsigned int i = 0; i < cells.size(); i++)
+        for (unsigned int j = 0; j < cells[i].size(); j++)
+        {
+            out[i][j] = (cells[i][j].Theta(_time::current)-cells[i][j].getValue("theta_r"))/(cells[i][j].getValue("theta_s")-cells[i][j].getValue("theta_r"));
+        }
+    return out;
+}
 

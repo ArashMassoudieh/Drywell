@@ -5,8 +5,8 @@ using namespace std;
 
 int main()
 {
-    int nz=20;
-    int nr=20;
+    int nz=5;
+    int nr=5;
     Grid G(nz,nr,4,4);
     for (int i=0; i<nz; i++)
     {

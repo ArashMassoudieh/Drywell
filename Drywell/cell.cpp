@@ -66,7 +66,7 @@ double Cell::H(_time t) const
     if (Se<1)
        H = -1.0/quants.at("alpha")*pow(pow(Se,-(quants.at("n")-1)/quants.at("n")-1),quants.at("n"));
     else
-       H = Se/quants.at("epsilon");
+       H = (Se-1)/quants.at("epsilon");
 
     return H;
 }

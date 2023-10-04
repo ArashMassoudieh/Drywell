@@ -8,8 +8,8 @@
 #include "Matrix.h"
 #include "Vector.h"
 
-//#define CMatrix_arma CMatrix
-//#define CVector_arma CVector
+#define CMatrix_arma CMatrix
+#define CVector_arma CVector
 
 using namespace std;
 
@@ -22,7 +22,7 @@ struct _solution_state
     double dt_scale_factor = 0.75;
     int number_of_iterations = 0;
     double dt_scale_factor_fail = 0.2;
-    int max_iterations = 40;
+    int max_iterations = 100;
 };
 
 class Grid
@@ -42,6 +42,8 @@ public:
     }
     void write_to_vtp(const string &name) const;
     _solution_state Solution_State;
+    CMatrix H();
+    CMatrix Se();
 private:
     vector<vector<Cell>> cells;
     unsigned int nz;
@@ -51,7 +53,7 @@ private:
     double K(int i,int j,const edge &ej);
     double D(int i,int j,const edge &ej);
     double invC(int i,int j,const edge &ej);
-    Cell* Neighbour(int i, int j, const edge &ej);
+    Cell* Neighbour(int i, int j, const edge &ej, bool op=false);
     CVector_arma GetStateVariable(const _time &t=_time::current) const;
 
 };

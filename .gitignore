@@ -32,3 +32,7 @@
 *.app
 
 build-Drywell-Desktop_Qt_5_15_2_GCC_64bit-Debug/
+
+*.stash
+
+build-Drywell-Desktop_Qt_5_15_2_GCC_64bit-Release/

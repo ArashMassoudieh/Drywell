@@ -5,8 +5,8 @@ using namespace std;
 
 int main()
 {
-    int nz=10;
-    int nr=5;
+    int nz=20;
+    int nr=20;
     Grid G(nz,nr,4,4);
     for (int i=0; i<nz; i++)
     {
@@ -22,7 +22,7 @@ int main()
          }
     }
 
-    G.OneStepSolve(0.1);
+    G.Solve(0,0.1,10);
     G.write_to_vtp("/home/arash/Projects/Drywell_Results/theta.vtp");
     cout<<"done!"<<endl;
 }

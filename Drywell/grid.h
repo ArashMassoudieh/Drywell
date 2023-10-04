@@ -8,8 +8,8 @@
 #include "Matrix.h"
 #include "Vector.h"
 
-#define CMatrix_arma CMatrix
-#define CVector_arma CVector
+//#define CMatrix_arma CMatrix
+//#define CVector_arma CVector
 
 using namespace std;
 
@@ -31,7 +31,7 @@ public:
     Grid();
     Grid(int nz, int nr, double depth, double radius);
     CVector_arma Residual(const CVector_arma &X, const double &dt);
-    void SetStateVariable(const CVector_arma &X);
+    void SetStateVariable(const CVector_arma &X,const _time &t=_time::current);
     CMatrix_arma Jacobian(const CVector_arma &X, const double &dt);
     double getVal(int i, int j, const string &val, const edge &ej) const;
     bool OneStepSolve(const double &dt);
@@ -48,11 +48,11 @@ private:
     unsigned int nr;
     double dz;
     double dr;
-    double K(int i,int j,const edge &ej) const;
-    double D(int i,int j,const edge &ej) const;
-    double invC(int i,int j,const edge &ej) const;
+    double K(int i,int j,const edge &ej);
+    double D(int i,int j,const edge &ej);
+    double invC(int i,int j,const edge &ej);
     Cell* Neighbour(int i, int j, const edge &ej);
-    CVector_arma GetStateVariable() const;
+    CVector_arma GetStateVariable(const _time &t=_time::current) const;
 
 };
 

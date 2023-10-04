@@ -53,42 +53,42 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
     return Res;
 }
 
-void Grid::SetStateVariable(const CVector_arma &X)
+void Grid::SetStateVariable(const CVector_arma &X,const _time &t)
 {
     for (unsigned int i=0; i<nz; i++)
         for (unsigned int j=0; j<nr; j++)
-            cells[i][j].SetTheta(X[j+nr*i],_time::current);
+            cells[i][j].SetTheta(X[j+nr*i],t);
 
 }
 
-CVector_arma Grid::GetStateVariable() const
+CVector_arma Grid::GetStateVariable(const _time &t) const
 {
     CVector_arma X(nr*nz);
     for (unsigned int i=0; i<nz; i++)
         for (unsigned int j=0; j<nr; j++)
-            X[j+nr*i] = cells[i][j].Theta(_time::current);
+            X[j+nr*i] = cells[i][j].Theta(t);
 
     return X;
 }
 
-double Grid::D(int i,int j,const edge &ej) const
+double Grid::D(int i,int j,const edge &ej)
 {
     return K(i,j,ej)*invC(i,j,ej);
 }
 
-double Grid::K(int i,int j,const edge &ej) const
+double Grid::K(int i,int j,const edge &ej)
 {
-    double Se = min(max((max(cells[i][j].Theta(_time::current),cells[i][j-1].Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6),0.99999);
+    double Se = min(max((max(cells[i][j].Theta(_time::current),Neighbour(i,j,ej)->Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6),0.99999);
     double m = 1.0-1.0/getVal(i,j,"n",ej);
     double K = pow(Se,0.5)*getVal(i,j,"Ks",ej)*pow(1-pow(1-pow(Se,1.0/m),m),2);
     return K;
 
 }
 
-double Grid::invC(int i,int j,const edge &ej) const
+double Grid::invC(int i,int j,const edge &ej)
 {
     double C;
-    double Se = min(max((max(cells[i][j].Theta(_time::current),cells[i][j-1].Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6),0.99999);
+    double Se = min(max((max(cells[i][j].Theta(_time::current),Neighbour(i,j,ej)->Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6),0.99999);
     double m = 1.0-1.0/getVal(i,j,"n",ej);
     if (getVal(i,j,"theta",ej)>getVal(i,j,"theta_s",ej))
         C = 1.0/getVal(i,j,"epsilon",ej);
@@ -191,6 +191,9 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end)
         {
             Solution_State.dt/=Solution_State.dt_scale_factor;
         }
+    CVector_arma X = GetStateVariable(_time::current);
+    SetStateVariable(X,_time::past);
+    cout<<Solution_State.t<<endl;
     }
     return true;
 }

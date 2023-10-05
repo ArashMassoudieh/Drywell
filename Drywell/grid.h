@@ -8,8 +8,8 @@
 #include "Matrix.h"
 #include "Vector.h"
 
-#define CMatrix_arma CMatrix
-#define CVector_arma CVector
+//#define CMatrix_arma CMatrix
+//#define CVector_arma CVector
 
 using namespace std;
 
@@ -35,15 +35,19 @@ public:
     CMatrix_arma Jacobian(const CVector_arma &X, const double &dt);
     double getVal(int i, int j, const string &val, const edge &ej) const;
     bool OneStepSolve(const double &dt);
-    bool Solve(const double &t0, const double &dt0, const double &t_end);
+    bool Solve(const double &t0, const double &dt0, const double &t_end, const double &write_interval);
     Cell* cell(int i, int j)
     {
         return &cells[i][j];
     }
     void write_to_vtp(const string &name) const;
+    void write_to_vtp(const string &name,const CMatrix &res) const;
+    void WriteResults(const string &filename);
     _solution_state Solution_State;
     CMatrix H();
     CMatrix Se();
+    CMatrix Theta(_time t);
+    vector<CMatrix> results;
 private:
     vector<vector<Cell>> cells;
     unsigned int nz;

@@ -63,10 +63,9 @@ double Cell::H(_time t) const
 {
     double Se = (Theta(t)-quants.at("theta_r"))/(quants.at("theta_s")-quants.at("theta_r"));
     double H;
-    if (Se<1)
-       H = -1.0/quants.at("alpha")*pow(pow(Se,-(quants.at("n")-1)/quants.at("n")-1),quants.at("n"));
-    else
-       H = (Se-1)/quants.at("epsilon");
+    H = -1.0/quants.at("alpha")*pow(pow(min(Se,0.999),-(quants.at("n")-1)/quants.at("n")-1),quants.at("n"));
+    if (Se>0.999)
+       H += (Se-0.999)/quants.at("epsilon");
 
     return H;
 }

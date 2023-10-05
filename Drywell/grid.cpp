@@ -1,5 +1,6 @@
 #include "grid.h"
 #include "vtk.h"
+#include "Utilities.h"
 
 
 Grid::Grid()
@@ -31,37 +32,11 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
             {
                 double r = (j+0.5)*dr;
                 Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
-                if (fabs(Res[j+nr*i])>100000)
-                {
-                    cout<<"Big Res!"<<endl;
-                }
                 Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::left)->H(_time::current));
-                if (fabs(Res[j+nr*i])>100000)
-                {
-                    cout<<"Big Res!"<<endl;
-                }
                 Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::right)->H(_time::current));
-                if (fabs(Res[j+nr*i])>100000)
-                {
-                    cout<<"Big Res!"<<endl;
-                }
-                //Res[j+nr*i] += -1/r*pow(1.0/dr,2)*((r+dr/2)*D(i,j,edge::right)*(cells[i][j+1].Theta(_time::current)-cells[i][j].Theta(_time::current))-(r-dr/2)*D(i,j,edge::left)*(cells[i][j].Theta(_time::current)-cells[i][j-1].Theta(_time::current)));
                 Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current));
-                if (fabs(Res[j+nr*i])>100000)
-                {
-                    cout<<"Big Res!"<<endl;
-                }
                 Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::down)->H(_time::current));
-                if (fabs(Res[j+nr*i])>100000)
-                {
-                    cout<<"Big Res!"<<endl;
-                }
-                //Res[j+nr*i] += -pow(1.0/dz,2)*(D(i,j,edge::down)*(cells[i+1][j].Theta(_time::current)-cells[i][j].Theta(_time::current))-D(i,j,edge::up)*(cells[i][j].Theta(_time::current)-cells[i-1][j].Theta(_time::current)));
                 Res[j+nr*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
-                if (fabs(Res[j+nr*i])>100000)
-                {
-                    cout<<"Big Res!"<<endl;
-                }
             }
             else if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
             {
@@ -191,7 +166,7 @@ bool Grid::OneStepSolve(const double &dt)
     Solution_State.number_of_iterations = 0;
     int count_error_expanding = 0;
 
-    while (err/err_0>1e-3)
+    while (err/(err_0+1e-3)>1e-3)
     {
         CMatrix_arma J = Jacobian(X,dt);
         CVector_arma dx = Res/J;
@@ -207,7 +182,7 @@ bool Grid::OneStepSolve(const double &dt)
         Solution_State.number_of_iterations ++;
         if (Solution_State.number_of_iterations>Solution_State.max_iterations || count_error_expanding>5 || !(err==err))
         {
-            cout<<"Interations: "<<Solution_State.number_of_iterations<<", Error Expanding: "<<count_error_expanding<<", Error: "<<err<< ",Ini Error:"<< err_0<<" dt: "<<dt<< endl;
+            //cout<<"Interations: "<<Solution_State.number_of_iterations<<", Error Expanding: "<<count_error_expanding<<", Error: "<<err<< ",Ini Error:"<< err_0<<" dt: "<<dt<< endl;
             SetStateVariable(X0);
             return false;
         }
@@ -215,7 +190,7 @@ bool Grid::OneStepSolve(const double &dt)
     return true;
 }
 
-bool Grid::Solve(const double &t0, const double &dt0, const double &t_end)
+bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const double &write_interval)
 {
     Solution_State.t = t0;
     Solution_State.dt = dt0;
@@ -226,7 +201,17 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end)
             Solution_State.dt*=Solution_State.dt_scale_factor_fail;
         }
         else
+        {
+            if (floor(Solution_State.t/write_interval)<floor((Solution_State.t+Solution_State.dt)/write_interval))
+            {
+                double write_time = floor((Solution_State.t+Solution_State.dt)/write_interval)*write_interval;
+                CMatrix snapshot = ((write_time-Solution_State.t)*Theta(_time::past) + (Solution_State.t+Solution_State.dt-write_time)*Theta(_time::current))/Solution_State.dt;
+                results.push_back(snapshot);
+            }
             Solution_State.t += Solution_State.dt;
+
+
+        }
         if (Solution_State.number_of_iterations>Solution_State.NI_max && Solution_State.dt>1e-5)
         {
             Solution_State.dt*=Solution_State.dt_scale_factor;
@@ -372,7 +357,145 @@ void Grid::write_to_vtp(const string &name) const
 
 }
 
+
+void Grid::write_to_vtp(const string &name,const CMatrix &res) const
+{
+    vtkSmartPointer<vtkPoints> points_3 =
+            vtkSmartPointer<vtkPoints>::New();
+
+        double xx, yy, zz;
+        vtkSmartPointer<vtkFloatArray> values =
+            vtkSmartPointer<vtkFloatArray>::New();
+
+        values->SetNumberOfComponents(1);
+
+        values->SetName("Moisture Content");
+
+
+
+        for (unsigned int i = 0; i < cells.size(); i++)
+            for (unsigned int j = 0; j < cells[i].size(); j++)
+            {
+                yy = -dz*(i+0.5);
+                xx = dr*(j+0.5);
+                zz = res[i][j];
+
+
+                float t[1] = { float(zz) };
+                points_3->InsertNextPoint(xx, yy, zz);
+                values->InsertNextTupleValue(t);
+
+            }
+
+
+        // Add the grid points to a polydata object
+        vtkSmartPointer<vtkPolyData> inputPolyData =
+            vtkSmartPointer<vtkPolyData>::New();
+        inputPolyData->SetPoints(points_3);
+
+        // Triangulate the grid points
+        vtkSmartPointer<vtkDelaunay2D> delaunay =
+            vtkSmartPointer<vtkDelaunay2D>::New();
+    #if VTK_MAJOR_VERSION <= 5
+        delaunay->SetInput(inputPolyData);
+    #else
+        delaunay->SetInputData(inputPolyData);
+    #endif
+        delaunay->Update();
+        vtkPolyData* outputPolyData = delaunay->GetOutput();
+
+        double bounds[6];
+        outputPolyData->GetBounds(bounds);
+
+        // Find min and max z
+        double minz = bounds[4];
+        double maxz = bounds[5];
+
+        // Create the color map
+        vtkSmartPointer<vtkLookupTable> colorLookupTable =
+            vtkSmartPointer<vtkLookupTable>::New();
+        colorLookupTable->SetTableRange(minz, maxz);
+        colorLookupTable->Build();
+
+        // Generate the colors for each point based on the color map
+        vtkSmartPointer<vtkUnsignedCharArray> colors_2 =
+            vtkSmartPointer<vtkUnsignedCharArray>::New();
+        colors_2->SetNumberOfComponents(3);
+        colors_2->SetName("Colors");
+
+
+        for (int i = 0; i < outputPolyData->GetNumberOfPoints(); i++)
+        {
+            double p[3];
+            outputPolyData->GetPoint(i, p);
+
+            double dcolor[3];
+            colorLookupTable->GetColor(p[2], dcolor);
+
+            unsigned char color[3];
+            for (unsigned int j = 0; j < 3; j++)
+            {
+                color[j] = static_cast<unsigned char>(255.0 * dcolor[j]);
+            }
+            //std::cout << "color: "
+            //	<< (int)color[0] << " "
+            //	<< (int)color[1] << " "
+            //	<< (int)color[2] << std::endl;
+
+            colors_2->InsertNextTupleValue(color);
+        }
+
+        outputPolyData->GetPointData()->SetScalars(values);
+
+
+        //Append the two meshes
+        vtkSmartPointer<vtkAppendPolyData> appendFilter =
+            vtkSmartPointer<vtkAppendPolyData>::New();
+    #if VTK_MAJOR_VERSION <= 5
+        appendFilter->AddInputConnection(input1->GetProducerPort());
+        appendFilter->AddInputConnection(input2->GetProducerPort());
+    #else
+        //appendFilter->AddInputData(polydata);
+        //appendFilter->AddInputData(polydata_1);
+        appendFilter->AddInputData(outputPolyData);
+    #endif
+        appendFilter->Update();
+
+
+        // Visualization
+        vtkSmartPointer<vtkPolyDataMapper> mapper =
+            vtkSmartPointer<vtkPolyDataMapper>::New();
+    #if VTK_MAJOR_VERSION <= 5
+        mapper->SetInputConnection(polydata->GetProducerPort());
+    #else
+        mapper->SetInputConnection(appendFilter->GetOutputPort());
+        //mapper->SetInputData(polydata_1);
+    #endif
+
+        vtkSmartPointer<vtkActor> actor =
+            vtkSmartPointer<vtkActor>::New();
+        actor->SetMapper(mapper);
+        actor->GetProperty()->SetPointSize(5);
+
+        vtkSmartPointer<vtkXMLPolyDataWriter> writer =
+            vtkSmartPointer<vtkXMLPolyDataWriter>::New();
+        writer->SetFileName(name.c_str());
+        writer->SetInputData(mapper->GetInput());
+        // This is set so we can see the data in a text editor.
+        writer->SetDataModeToAscii();
+        writer->Write();
+
+}
 #endif
+
+void Grid::WriteResults(const string &filename)
+{
+    for (unsigned k=0; k<results.size(); k++)
+    {
+        string name = aquiutils::split(filename,'.')[0]+"_"+aquiutils::numbertostring(k+1)+".vtp";
+        write_to_vtp(name,results[k]);
+    }
+}
 
 CMatrix Grid::H()
 {
@@ -381,6 +504,17 @@ CMatrix Grid::H()
         for (unsigned int j = 0; j < cells[i].size(); j++)
         {
             out[i][j] = cells[i][j].H(_time::current);
+        }
+    return out;
+}
+
+CMatrix Grid::Theta(_time t)
+{
+    CMatrix out(nz,nr);
+    for (unsigned int i = 0; i < cells.size(); i++)
+        for (unsigned int j = 0; j < cells[i].size(); j++)
+        {
+            out[i][j] = cells[i][j].Theta(t);
         }
     return out;
 }

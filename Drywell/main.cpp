@@ -22,7 +22,7 @@ int main()
          }
     }
 
-    G.Solve(0,0.1,10);
-    G.write_to_vtp("/home/arash/Projects/Drywell_Results/theta.vtp");
+    G.Solve(0,0.1,10,0.2);
+    G.WriteResults("/home/arash/Projects/Drywell_Results/theta.vtp");
     cout<<"done!"<<endl;
 }

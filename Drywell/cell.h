@@ -8,7 +8,7 @@ using namespace std;
 
 enum class edge {left, right, up, down};
 enum class _time {past, current, both};
-enum class boundaryType {none, gradient, fixedpressure, fixedmoisture};
+enum class boundaryType {none, gradient, fixedpressure, fixedmoisture, symmetry};
 
 struct boundary
 {

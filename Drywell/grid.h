@@ -7,6 +7,7 @@
 #include "Matrix_arma.h"
 #include "Matrix.h"
 #include "Vector.h"
+#include "BTC.h"
 
 //#define CMatrix_arma CMatrix
 //#define CVector_arma CVector
@@ -48,6 +49,7 @@ public:
     CMatrix Se();
     CMatrix Theta(_time t);
     vector<CMatrix> results;
+    bool SetProp(const string &propname, const string &value);
 private:
     vector<vector<Cell>> cells;
     unsigned int nz;
@@ -59,6 +61,12 @@ private:
     double invC(int i,int j,const edge &ej);
     Cell* Neighbour(int i, int j, const edge &ej, bool op=false);
     CVector_arma GetStateVariable(const _time &t=_time::current) const;
+    double well_H = 0;
+    double well_H_old = 0;
+    double r_w;
+    double beta;
+    double alpha;
+    CTimeSeries<double> inflow;
 
 };
 

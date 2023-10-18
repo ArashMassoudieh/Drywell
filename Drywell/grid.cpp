@@ -2,6 +2,7 @@
 #include "vtk.h"
 #include "Utilities.h"
 
+#define pi 3.14159265
 
 Grid::Grid()
 {
@@ -21,16 +22,17 @@ Grid::Grid(int _nz, int _nr, double depth, double radius)
 
 CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
 {
-    CVector_arma Res(nr*nz);
+    CVector_arma Res(nr*nz+1);
     SetStateVariable(X);
     CMatrix Pressure = H();
     CMatrix Saturation = Se();
+    Res[nz*nr] = (2*pi*r_w*min(0.0,well_H)+alpha*beta*pow(max(well_H,0.0),beta-1))*(well_H-well_H_old)/dt - inflow.interpol(Solution_State.t);
     for (unsigned int i=0; i<nz; i++)
         for (unsigned int j=0; j<nr; j++)
         {
             if (cells[i][j].Boundary.type==boundaryType::none)
             {
-                double r = (j+0.5)*dr;
+                double r = (j+0.5)*dr+r_w;
                 Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
                 Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::left)->H(_time::current));
                 Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::right)->H(_time::current));
@@ -44,7 +46,8 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
             }
             else if (cells[i][j].Boundary.type==boundaryType::fixedpressure)
             {
-                Res[j+nr*i] = cells[i][j].H(_time::current) - cells[i][j].Boundary.value;
+                Res[j+nr*i] = cells[i][j].H(_time::current) - well_H;
+                Res[nz*nr]+=2*dz*pi*r_w*K(i,j,edge::right)*(max(-well_H-i*dz,0.0)-Neighbour(i,j,edge::right)->H(_time::current));
             }
             else if (cells[i][j].Boundary.type==boundaryType::gradient)
             {
@@ -63,17 +66,29 @@ void Grid::SetStateVariable(const CVector_arma &X,const _time &t)
 {
     for (unsigned int i=0; i<nz; i++)
         for (unsigned int j=0; j<nr; j++)
+        {
+            if (cells[i][j].Boundary.type == boundaryType::fixedpressure)
+            {
+                cells[i][j].Boundary.value = min(X[nz*nr]-i*dz,0.0);
+            }
             cells[i][j].SetTheta(X[j+nr*i],t);
+
+        }
+    if (t==_time::current)
+        well_H = X[nz*nr];
+    else
+        well_H_old = X[nz*nr];
 
 }
 
 CVector_arma Grid::GetStateVariable(const _time &t) const
 {
-    CVector_arma X(nr*nz);
+    CVector_arma X(nr*nz+1);
     for (unsigned int i=0; i<nz; i++)
         for (unsigned int j=0; j<nr; j++)
             X[j+nr*i] = cells[i][j].Theta(t);
 
+    X[nr*nz] = well_H;
     return X;
 }
 
@@ -227,6 +242,42 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
     return true;
 }
 
+bool Grid::SetProp(const string &propname, const string &value)
+{
+    if (propname == "well_H")
+    {
+        well_H = aquiutils::atof(value);
+        return true;
+    }
+    else if (propname == "well_H_old")
+    {
+        well_H_old = aquiutils::atof(value);
+        return true;
+    }
+    else if (propname == "r_w")
+    {
+        r_w = aquiutils::atof(value);
+        return true;
+    }
+    else if (propname == "beta")
+    {
+        beta = aquiutils::atof(value);
+        return true;
+    }
+    else if (propname == "alpha")
+    {
+        alpha = aquiutils::atof(value);
+        return true;
+    }
+    else if (propname == "inflow")
+    {
+        inflow = CTimeSeries<double>(value);
+        return true;
+    }
+    return false;
+
+}
+
 #ifdef use_VTK
 void Grid::write_to_vtp(const string &name) const
 {
@@ -247,7 +298,7 @@ void Grid::write_to_vtp(const string &name) const
             for (unsigned int j = 0; j < cells[i].size(); j++)
             {
                 yy = -dz*(i+0.5);
-                xx = dr*(j+0.5);
+                xx = dr*(j+0.5)+r_w;
                 zz = cells[i][j].Theta(_time::current);
 
 

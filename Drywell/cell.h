@@ -30,9 +30,19 @@ public:
     boundary Boundary;
     void SetBoundary(boundaryType typ, edge boundaryEdge, const double &value = 0);
     double H(_time t) const;
+    void SetQOut(const double &val)
+    {
+        qOut = val;
+    }
+    double QOut()
+    {
+        return qOut;
+    }
 private:
     map<string,double> quants;
     Grid *parent;
+    double qOut = 0;
+
 };
 
 #endif // CELL_H

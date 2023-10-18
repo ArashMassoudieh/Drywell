@@ -58,7 +58,7 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
             }
             else if (cells[i][j].Boundary.type==boundaryType::symmetry)
             {
-                double r = (j+0.5)*dr;
+                  double r = (j+0.5)*dr;
                 Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
                 if (cells[i][j].Boundary.boundary_edge!=edge::left)
                     Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::left)->H(_time::current));

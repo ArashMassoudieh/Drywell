@@ -43,7 +43,7 @@ void Cell::SetTheta(const double &val,const _time &t)
 double Cell::Theta(const _time &t) const
 {
     if (t==_time::current)
-        return quants.at("theta");
+          return quants.at("theta");
     else if (t==_time::past)
         return quants.at("theta_past");
     else

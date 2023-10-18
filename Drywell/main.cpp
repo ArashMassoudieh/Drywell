@@ -11,17 +11,22 @@ int main()
     for (int i=0; i<nz; i++)
     {
         for (int j=0; j<nr; j++)
-        {   G.cell(i,0)->Boundary.type = boundaryType::fixedmoisture;
-            G.cell(i,0)->Boundary.value = 0.4;
-            G.cell(i,nr-1)->Boundary.type = boundaryType::fixedmoisture;
-            G.cell(i,nr-1)->Boundary.value = 0.4;
-            G.cell(0,j)->Boundary.type = boundaryType::fixedmoisture;
+        {   G.cell(i,0)->Boundary.type = boundaryType::symmetry;
+            G.cell(i,nr-1)->Boundary.type = boundaryType::symmetry;
+            G.cell(0,j)->Boundary.type = boundaryType::symmetry;
             G.cell(0,j)->Boundary.value = 0.4;
             G.cell(nz-1,j)->Boundary.type = boundaryType::fixedmoisture;
             G.cell(nz-1,j)->Boundary.value = 0.4;
          }
     }
+    G.cell(0,0)->Boundary.type = boundaryType::fixedpressure;
+    G.cell(1,0)->Boundary.type = boundaryType::fixedpressure;
 
+    G.SetProp("alpha","1000.0");
+    G.SetProp("beta","2");
+    G.SetProp("inflow","/home/arash/Projects/Drywell_Results/inflow.txt");
+    G.SetProp("well_H","-2");
+    G.SetProp("r_w","0");
     G.Solve(0,0.1,10,0.2);
     G.WriteResults("/home/arash/Projects/Drywell_Results/theta.vtp");
     cout<<"done!"<<endl;

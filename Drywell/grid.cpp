@@ -61,13 +61,15 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
                 double r = (j+0.5)*dr;
                 Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
                 if (cells[i][j].Boundary.boundary_edge!=edge::left)
-                    Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::left)->H(_time::current));
+                    Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current)-H(i,j,edge::left,_time::current));
                 if (cells[i][j].Boundary.boundary_edge!=edge::right)
-                    Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::right)->H(_time::current));
-
-                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current));
-                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::down)->H(_time::current));
-                Res[j+nr*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
+                    Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current)-H(i,j,edge::right,_time::current));
+                if (cells[i][j].Boundary.boundary_edge!=edge::up)
+                    Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current)-H(i,j,edge::up,_time::current));
+                if (cells[i][j].Boundary.boundary_edge!=edge::down)
+                    Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current)-H(i,j,edge::down,_time::current));
+                if (cells[i][j].Boundary.boundary_edge!=edge::down && cells[i][j].Boundary.boundary_edge!=edge::up)
+                    Res[j+nr*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
 
             }
 
@@ -112,11 +114,21 @@ double Grid::D(int i,int j,const edge &ej)
 
 double Grid::K(int i,int j,const edge &ej)
 {
+    if (Neighbour(i,j,ej)==nullptr)
+        return 0;
     double Se = min(max((max(cells[i][j].Theta(_time::current),Neighbour(i,j,ej)->Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6),0.99999);
     double m = 1.0-1.0/getVal(i,j,"n",ej);
     double K = pow(Se,0.5)*getVal(i,j,"Ks",ej)*pow(1-pow(1-pow(Se,1.0/m),m),2);
     return K;
 
+}
+
+double Grid::H(int i,int j,const edge &ej, _time t)
+{
+    if (Neighbour(i,j,ej))
+        return Neighbour(i,j,ej)->H(t);
+    else
+        return 0;
 }
 
 double Grid::invC(int i,int j,const edge &ej)
@@ -148,23 +160,27 @@ Cell* Grid::Neighbour(int i, int j, const edge &ej, bool op)
 {
     if (op)
     {   if (ej == edge::down)
-            return &cells[i-1][j];
+            return cell(i-1,j);
         else if (ej == edge::up)
-            return &cells[i+1][j];
+            return cell(i+1,j);
         else if (ej == edge::left)
-            return &cells[i][j+1];
+            return cell(i,j+1);
         else if (ej == edge::right)
-            return &cells[i][j-1];
+            return cell(i,j-1);
+        else
+            return nullptr;
     }
     else
     {   if (ej == edge::down)
-            return &cells[i+1][j];
+            return cell(i+1,j);
         else if (ej == edge::up)
-            return &cells[i-1][j];
+            return cell(i-1,j);
         else if (ej == edge::left)
-            return &cells[i][j-1];
+            return cell(i,j-1);
         else if (ej == edge::right)
-            return &cells[i][j+1];
+            return cell(i,j+1);
+        else
+            return nullptr;
     }
 
 }

@@ -38,7 +38,10 @@ public:
     bool Solve(const double &t0, const double &dt0, const double &t_end, const double &write_interval);
     Cell* cell(int i, int j)
     {
-        return &cells[i][j];
+        if (i>=0 && j>=0 && i<nz & j<nr)
+            return &cells[i][j];
+        else
+            return nullptr;
     }
     void write_to_vtp(const string &name) const;
     void write_to_vtp(const string &name,const CMatrix &res) const;
@@ -48,6 +51,7 @@ public:
     CMatrix Se();
     CMatrix Theta(_time t);
     vector<CMatrix> results;
+
 private:
     vector<vector<Cell>> cells;
     unsigned int nz;
@@ -56,6 +60,7 @@ private:
     double dr;
     double K(int i,int j,const edge &ej);
     double D(int i,int j,const edge &ej);
+    double H(int i,int j,const edge &ej, _time t);
     double invC(int i,int j,const edge &ej);
     Cell* Neighbour(int i, int j, const edge &ej, bool op=false);
     CVector_arma GetStateVariable(const _time &t=_time::current) const;

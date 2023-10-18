@@ -55,6 +55,19 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
                     Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge, true)->Theta(_time::current))/dz;
                 else
                     Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge, true)->Theta(_time::current))/dr;
+            }
+            else if (cells[i][j].Boundary.type==boundaryType::symmetry)
+            {
+                double r = (j+0.5)*dr;
+                Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
+                if (cells[i][j].Boundary.boundary_edge!=edge::left)
+                    Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::left)->H(_time::current));
+                if (cells[i][j].Boundary.boundary_edge!=edge::right)
+                    Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::right)->H(_time::current));
+
+                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current));
+                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::down)->H(_time::current));
+                Res[j+nr*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
 
             }
 

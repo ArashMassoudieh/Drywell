@@ -47,12 +47,12 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
             else if (cells[i][j].Boundary.type==boundaryType::fixedpressure)
             {
                 Res[j+nr*i] = cells[i][j].H(_time::current) - well_H;
-                Res[nz*nr]+=2*dz*pi*r_w*K(i,j,edge::right)*(max(-well_H-i*dz,0.0)-Neighbour(i,j,edge::right)->H(_time::current));
+                  Res[nz*nr]+=2*dz*pi*r_w*K(i,j,edge::right)*(max(-well_H-i*dz,0.0)-Neighbour(i,j,edge::right)->H(_time::current));
             }
             else if (cells[i][j].Boundary.type==boundaryType::gradient)
             {
                 if (cells[i][j].Boundary.boundary_edge == edge::down || cells[i][j].Boundary.boundary_edge == edge::up)
-                    Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge, true)->Theta(_time::current))/dz;
+                      Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge, true)->Theta(_time::current))/dz;
                 else
                     Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge, true)->Theta(_time::current))/dr;
             }

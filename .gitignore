@@ -36,3 +36,21 @@ build-Drywell-Desktop_Qt_5_15_2_GCC_64bit-Debug/
 *.stash
 
 build-Drywell-Desktop_Qt_5_15_2_GCC_64bit-Release/
+
+DryWellConsol/.vs/DryWellConsol/v17/
+
+DryWellConsol/.vs/DryWellConsol/FileContentIndex/
+
+Drywell/release/qmake/temp/
+
+DryWellConsol/x64/Debug/
+
+*.tlog
+
+Drywell/debug/
+
+Drywell/.vs/Drywell/v17/
+
+Drywell/.vs/Drywell/FileContentIndex/
+
+Drywell/release/qmake/

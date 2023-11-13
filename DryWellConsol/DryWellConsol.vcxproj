@@ -142,6 +142,7 @@
       <Command>copy "..\..\Armadillo\libs\lapack-blas_lib_win64\*.dll" "$(TargetDir)"
 copy "..\..\VTK-9.2.0\bin\*.dll" "$(TargetDir)"
 </Command>
+      <Message>copying</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -166,6 +167,7 @@ copy "..\..\VTK-9.2.0\bin\*.dll" "$(TargetDir)"
       <Command>copy "..\..\Armadillo\libs\lapack-blas_lib_win64\*.dll" "$(TargetDir)"
 copy "..\..\VTK-9.2.0\bin\*.dll" "$(TargetDir)"
 </Command>
+      <Message>copying</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

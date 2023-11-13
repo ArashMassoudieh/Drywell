@@ -11,7 +11,7 @@ Global
 		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-		Description = Drywell Project
+		Description = Drywell Project Grid
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{F275FA61-5F06-4A17-AD42-CE72A54260BC}.Debug|x64.ActiveCfg = Debug|x64

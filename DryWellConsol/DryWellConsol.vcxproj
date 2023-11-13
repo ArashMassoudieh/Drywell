@@ -144,6 +144,9 @@ copy "..\..\VTK-9.2.0\bin\*.dll" "$(TargetDir)"
 </Command>
       <Message>copying</Message>
     </PostBuildEvent>
+    <PreLinkEvent>
+      <Message>PreLink</Message>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -169,6 +172,9 @@ copy "..\..\VTK-9.2.0\bin\*.dll" "$(TargetDir)"
 </Command>
       <Message>copying</Message>
     </PostBuildEvent>
+    <PreLinkEvent>
+      <Message>PreLink</Message>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -26,8 +26,10 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
     SetStateVariable(X);
     CMatrix Pressure = H();
     CMatrix Saturation = Se();
-    Res[nz*nr] = (2*pi*r_w*min(0.0,well_H)+alpha*beta*pow(max(well_H,0.0),beta-1))*(well_H-well_H_old)/dt - inflow.interpol(Solution_State.t);
+    Res[nz*nr] = (2*pi*(r_w+dr/2)*(well_H<0?1:0)+alpha*beta*pow(max(well_H,0.0),beta-1))*(well_H-well_H_old)/dt - inflow.interpol(Solution_State.t);
     for (unsigned int i=0; i<nz; i++)
+    {   double lower_el = -dz*(i+1);
+        double interface_length = max(min(well_H - lower_el,dz),0.0);
         for (unsigned int j=0; j<nr; j++)
         {
             if (cells[i][j].Boundary.type==boundaryType::none)
@@ -46,8 +48,8 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
             }
             else if (cells[i][j].Boundary.type==boundaryType::fixedpressure)
             {
-                Res[j+nr*i] = cells[i][j].H(_time::current) - well_H;
-                Res[nz*nr]+=2*dz*pi*r_w*K(i,j,edge::right)*(max(-well_H-i*dz,0.0)-Neighbour(i,j,edge::right)->H(_time::current));
+                Res[j+nr*i] = cells[i][j].H(_time::current) - max(well_H+(i+1)*dz,0.0)*(interface_length/dz);
+                Res[nz*nr]+=2*interface_length*pi*(r_w+dr/2)*K(i,j,edge::right)*(max(well_H+(i+1)*dz,0.0)-Neighbour(i,j,edge::right)->H(_time::current));
             }
             else if (cells[i][j].Boundary.type==boundaryType::gradient)
             {
@@ -60,18 +62,27 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
             {
                 double r = (j+0.5)*dr;
                 Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
-                if (cells[i][j].Boundary.boundary_edge!=edge::left)
+                if (cells[i][j].Boundary.boundary_edge!=edge::left && Neighbour(i,j,edge::left))
+                {
                     Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::left)->H(_time::current));
-                if (cells[i][j].Boundary.boundary_edge!=edge::right)
+                }
+                if (cells[i][j].Boundary.boundary_edge!=edge::right && Neighbour(i,j,edge::right))
+                {
                     Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::right)->H(_time::current));
-
-                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current));
-                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::down)->H(_time::current));
-                Res[j+nr*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
+                }
+                if (cells[i][j].Boundary.boundary_edge!=edge::up && Neighbour(i,j,edge::up))
+                {
+                    Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current));
+                }
+                if (cells[i][j].Boundary.boundary_edge!=edge::down && Neighbour(i,j,edge::down))
+                {   Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::down)->H(_time::current));
+                    Res[j+nr*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
+                }
 
             }
 
         }
+    }
     return Res;
 }
 
@@ -112,7 +123,10 @@ double Grid::D(int i,int j,const edge &ej)
 
 double Grid::K(int i,int j,const edge &ej)
 {
-    double Se = min(max((max(cells[i][j].Theta(_time::current),Neighbour(i,j,ej)->Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6),0.99999);
+    Cell* neighbour = Neighbour(i,j,ej);
+    if (!neighbour)
+        neighbour = &cells[i][j];
+    double Se = min(max((max(cells[i][j].Theta(_time::current),neighbour->Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6),0.99999);
     double m = 1.0-1.0/getVal(i,j,"n",ej);
     double K = pow(Se,0.5)*getVal(i,j,"Ks",ej)*pow(1-pow(1-pow(Se,1.0/m),m),2);
     return K;
@@ -131,16 +145,13 @@ double Grid::invC(int i,int j,const edge &ej)
     return C;
 }
 
-double Grid::getVal(int i, int j, const string &val, const edge &ej) const
+double Grid::getVal(int i, int j, const string &val, const edge &ej)
 {
-    if (ej == edge::left)
-        return 0.5*(cells[i][j].getValue(val)+cells[i][j-1].getValue(val));
-    else if (ej == edge::right)
-        return 0.5*(cells[i][j].getValue(val)+cells[i][j+1].getValue(val));
-    else if (ej == edge::down)
-        return 0.5*(cells[i][j].getValue(val)+cells[i+1][j].getValue(val));
-    else
-        return 0.5*(cells[i][j].getValue(val)+cells[i-1][j].getValue(val));
+    Cell* neighbour = Neighbour(i,j,ej);
+    if (!neighbour)
+        neighbour = &cells[i][j];
+
+    return 0.5*(cells[i][j].getValue(val)+neighbour->getValue(val));
 
 }
 
@@ -148,26 +159,72 @@ Cell* Grid::Neighbour(int i, int j, const edge &ej, bool op)
 {
     if (op)
     {   if (ej == edge::down)
-            return &cells[i-1][j];
+        {
+            if (i>0)
+                return &cells[i-1][j];
+            else
+                return nullptr;
+        }
         else if (ej == edge::up)
-            return &cells[i+1][j];
+        {
+            if (i<nz-1)
+                return &cells[i+1][j];
+            else
+                return nullptr;
+
+        }
         else if (ej == edge::left)
-            return &cells[i][j+1];
+        {
+            if (j<nr-1)
+                return &cells[i][j+1];
+            else
+                return nullptr;
+
+        }
         else if (ej == edge::right)
-            return &cells[i][j-1];
+        {
+            if (j>0)
+                return &cells[i][j-1];
+            else
+                return nullptr;
+        }
     }
     else
     {   if (ej == edge::down)
-            return &cells[i+1][j];
+        {
+            if (i<nz-1)
+                return &cells[i+1][j];
+            else
+                return nullptr;
+        }
         else if (ej == edge::up)
-            return &cells[i-1][j];
+        {
+            if (i>0)
+                return &cells[i-1][j];
+            else
+                return nullptr;
+        }
         else if (ej == edge::left)
-            return &cells[i][j-1];
+        {
+            if (j>0)
+                return &cells[i][j-1];
+            else
+                return nullptr;
+
+        }
         else if (ej == edge::right)
-            return &cells[i][j+1];
+        {
+            if (j<nr-1)
+                return &cells[i][j+1];
+            else
+                return nullptr;
+
+        }
     }
 
 }
+
+
 
 CMatrix_arma Grid::Jacobian(const CVector_arma &X, const double &dt)
 {
@@ -222,6 +279,7 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
 {
     Solution_State.t = t0;
     Solution_State.dt = dt0;
+    Well_Water_Depth.append(Solution_State.t,well_H);
     while (Solution_State.t + Solution_State.dt<t_end)
     {
         if (!OneStepSolve(Solution_State.dt))
@@ -237,19 +295,21 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
                 results.push_back(snapshot);
             }
             Solution_State.t += Solution_State.dt;
+            Well_Water_Depth.append(Solution_State.t,well_H);
 
 
-        }
-        if (Solution_State.number_of_iterations>Solution_State.NI_max && Solution_State.dt>1e-5)
-        {
-            Solution_State.dt*=Solution_State.dt_scale_factor;
-        }
-        else if (Solution_State.number_of_iterations<Solution_State.NI_min)
-        {
-            Solution_State.dt/=Solution_State.dt_scale_factor;
+            if (Solution_State.number_of_iterations>Solution_State.NI_max && Solution_State.dt>1e-5)
+            {
+                Solution_State.dt*=Solution_State.dt_scale_factor;
+            }
+            else if (Solution_State.number_of_iterations<Solution_State.NI_min)
+            {
+                Solution_State.dt/=Solution_State.dt_scale_factor;
+            }
         }
     CVector_arma X = GetStateVariable(_time::current);
     SetStateVariable(X,_time::past);
+
     cout<<Solution_State.t<<endl;
     }
     return true;

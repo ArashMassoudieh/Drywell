@@ -34,7 +34,7 @@ public:
     CVector_arma Residual(const CVector_arma &X, const double &dt);
     void SetStateVariable(const CVector_arma &X,const _time &t=_time::current);
     CMatrix_arma Jacobian(const CVector_arma &X, const double &dt);
-    double getVal(int i, int j, const string &val, const edge &ej) const;
+    double getVal(int i, int j, const string &val, const edge &ej);
     bool OneStepSolve(const double &dt);
     bool Solve(const double &t0, const double &dt0, const double &t_end, const double &write_interval);
     Cell* cell(int i, int j)
@@ -50,6 +50,10 @@ public:
     CMatrix Theta(_time t);
     vector<CMatrix> results;
     bool SetProp(const string &propname, const string &value);
+    CTimeSeries<double> &WaterDepth()
+    {
+        return Well_Water_Depth;
+    }
 private:
     vector<vector<Cell>> cells;
     unsigned int nz;
@@ -67,6 +71,7 @@ private:
     double beta;
     double alpha;
     CTimeSeries<double> inflow;
+    CTimeSeries<double> Well_Water_Depth;
 
 };
 

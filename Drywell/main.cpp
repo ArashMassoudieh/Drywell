@@ -36,9 +36,11 @@ int main()
     G.SetProp("alpha","1000.0");
     G.SetProp("beta","2");
     G.SetProp("inflow","/home/arash/Projects/Drywell_Results/inflow.txt");
-    G.SetProp("well_H","-2");
+    G.SetProp("well_H","-1");
+    G.SetProp("well_H_old","-1");
     G.SetProp("r_w","0");
     G.Solve(0,0.1,10,0.2);
     G.WriteResults("/home/arash/Projects/Drywell_Results/theta.vtp");
+    G.WaterDepth().writefile("/home/arash/Projects/Drywell_Results/waterdepth.csv");
     cout<<"done!"<<endl;
 }

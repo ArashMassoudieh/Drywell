@@ -8,9 +8,11 @@ DEFINES += use_VTK
 CONFIG += use_VTK
 #VTKBUILDPATH = /home/arash/Projects/VTK-9.2.0/
 #VTKBUILDPATH = /home/arash/Projects/VTK/VTK-build
-VTKBUILDPATH = /home/arash/Projects/VTK-build
-VTKHEADERPATH = /home/arash/Projects/VTK
-VTK_V = -9.0
+#VTKBUILDPATH = /home/arash/Projects/VTK-build
+#VTKHEADERPATH = /home/arash/Projects/VTK
+VTKBUILDPATH = /home/arash/Project_Khiem/VTK/VTK-build
+VTKHEADERPATH = /home/arash/Project_Khiem/VTK
+VTK_V = -9.3
 
 SOURCES += \
     ../../Utilities/Distribution.cpp \
@@ -185,6 +187,8 @@ use_VTK {
     INCLUDEPATH +=$${VTKHEADERPATH}/Common/Core
     INCLUDEPATH +=$${VTKBUILDPATH}/Common/Core
     INCLUDEPATH +=$${VTKHEADERPATH}/Common/Color
+    INCLUDEPATH +=$${VTKHEADERPATH}/Common/Transforms
+    INCLUDEPATH +=$${VTKBUILDPATH}/Common/Transforms
     INCLUDEPATH +=$${VTKBUILDPATH}/Common/Color
     INCLUDEPATH +=$${VTKBUILDPATH}/Common/DataModel
     INCLUDEPATH +=$${VTKBUILDPATH}/Utilities/KWIML
@@ -223,6 +227,7 @@ use_VTK {
     INCLUDEPATH +=$${VTKBUILDPATH}/IO/Image
     INCLUDEPATH +=$${VTKHEADERPATH}/Imaging/Core
     INCLUDEPATH +=$${VTKBUILDPATH}/Imaging/Core
+    INCLUDEPATH +=$${VTKBUILDPATH}/Utilities/KWSys
 
 }
 

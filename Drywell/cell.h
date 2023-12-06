@@ -23,10 +23,14 @@ class Cell
 {
 public:
     Cell();
+    ~Cell();
+    Cell(const Cell &RHS);
+    Cell& operator=(const Cell &RHS);
     void InitiateQuans();
     void SetTheta(const double &val, const _time &t);
     double Theta(const _time &t) const;
-    double getValue(const string quan) const;
+    double getValue(const string &quan) const;
+    void SetValue(const string &quan, const double &value);
     boundary Boundary;
     void SetBoundary(boundaryType typ, edge boundaryEdge, const double &value = 0);
     double H(_time t) const;

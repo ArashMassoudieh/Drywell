@@ -19,12 +19,35 @@ void Cell::InitiateQuans()
     Boundary.type = boundaryType::none;
 }
 
-double Cell::getValue(const string quan) const
+Cell::~Cell()
+{
+
+}
+Cell::Cell(const Cell &RHS)
+{
+    quants = RHS.quants;
+    Boundary = RHS.Boundary;
+}
+
+Cell& Cell::operator=(const Cell &RHS)
+{
+    quants = RHS.quants;
+    Boundary = RHS.Boundary;
+    return *this;
+}
+
+double Cell::getValue(const string &quan) const
 {
     if (quants.count(quan)>0)
         return quants.at(quan);
     else
         return 0;
+}
+
+void Cell::SetValue(const string &quan, const double &value)
+{
+    if (quants.count(quan)>0)
+        quants.at(quan) = value;
 }
 
 void Cell::SetTheta(const double &val,const _time &t)
@@ -69,3 +92,5 @@ double Cell::H(_time t) const
 
     return H;
 }
+
+

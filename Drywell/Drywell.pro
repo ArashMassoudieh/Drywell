@@ -6,13 +6,21 @@ CONFIG -= qt
 DEFINES += _arma
 DEFINES += use_VTK
 CONFIG += use_VTK
+
+CONFIG += Arash
+DEFINES += Arash
+
 #VTKBUILDPATH = /home/arash/Projects/VTK-9.2.0/
 #VTKBUILDPATH = /home/arash/Projects/VTK/VTK-build
-#VTKBUILDPATH = /home/arash/Projects/VTK-build
-#VTKHEADERPATH = /home/arash/Projects/VTK
-VTKBUILDPATH = /home/arash/Project_Khiem/VTK/VTK-build
-VTKHEADERPATH = /home/arash/Project_Khiem/VTK
-VTK_V = -9.3
+Arash {
+    VTKBUILDPATH = /home/arash/Projects/VTK-build
+    VTKHEADERPATH = /home/arash/Projects/VTK
+    VTK_V = -9.0
+} else {
+    VTKBUILDPATH = /home/arash/Project_Khiem/VTK/VTK-build
+    VTKHEADERPATH = /home/arash/Project_Khiem/VTK
+    VTK_V = -9.3
+}
 
 SOURCES += \
     ../../Utilities/Distribution.cpp \
@@ -25,6 +33,7 @@ SOURCES += \
     ../../Utilities/Vector_arma.cpp \
     cell.cpp \
     grid.cpp \
+    interface.cpp \
     main.cpp
 
 HEADERS += \
@@ -41,7 +50,8 @@ HEADERS += \
     ../../Utilities/Vector.h \
     ../../Utilities/Vector_arma.h \
     cell.h \
-    grid.h
+    grid.h \
+    interface.h
 
 
 INCLUDEPATH += ../../Utilities/

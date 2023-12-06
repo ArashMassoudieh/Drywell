@@ -9,6 +9,32 @@ Grid::Grid()
 
 }
 
+Grid::~Grid()
+{
+
+}
+Grid::Grid(const Grid &RHS)
+{
+    nz = RHS.nz;
+    nr = RHS.nr;
+    dz = RHS.dz;
+    dr = RHS.dr;
+    cells = RHS.cells;
+    interfaces_r = RHS.interfaces_r;
+    interfaces_z = RHS.interfaces_z;
+}
+Grid& Grid::operator=(const Grid &RHS)
+{
+    nz = RHS.nz;
+    nr = RHS.nr;
+    dz = RHS.dz;
+    dr = RHS.dr;
+    cells = RHS.cells;
+    interfaces_r = RHS.interfaces_r;
+    interfaces_z = RHS.interfaces_z;
+    return *this;
+}
+
 Grid::Grid(int _nz, int _nr, double depth, double radius)
 {
     nz = _nz;
@@ -18,6 +44,14 @@ Grid::Grid(int _nz, int _nr, double depth, double radius)
     cells.resize(nz);
     for (unsigned int i=0; i<nz; i++)
         cells[i].resize(nr);
+
+    interfaces_r.resize(nz);
+    for (unsigned int i=0; i<nz; i++)
+        interfaces_r.resize(nr-1);
+
+    interfaces_z.resize(nz-1);
+    for (unsigned int i=0; i<nz-1; i++)
+        interfaces_z.resize(nr);
 }
 
 CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
@@ -32,9 +66,9 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
         double interface_length = max(min(well_H - lower_el,dz),0.0);
         for (unsigned int j=0; j<nr; j++)
         {
+            double r = (j+0.5)*dr+r_w;
             if (cells[i][j].Boundary.type==boundaryType::none)
             {
-                double r = (j+0.5)*dr+r_w;
                 Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
                 Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::left)->H(_time::current));
                 Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::right)->H(_time::current));
@@ -60,7 +94,6 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
             }
             else if (cells[i][j].Boundary.type==boundaryType::symmetry)
             {
-                double r = (j+0.5)*dr;
                 Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
                 if (cells[i][j].Boundary.boundary_edge!=edge::left && Neighbour(i,j,edge::left))
                 {
@@ -332,12 +365,12 @@ bool Grid::SetProp(const string &propname, const string &value)
         r_w = aquiutils::atof(value);
         return true;
     }
-    else if (propname == "beta")
+    else if (propname == "pond_beta")
     {
         beta = aquiutils::atof(value);
         return true;
     }
-    else if (propname == "alpha")
+    else if (propname == "pond_alpha")
     {
         alpha = aquiutils::atof(value);
         return true;
@@ -346,6 +379,12 @@ bool Grid::SetProp(const string &propname, const string &value)
     {
         inflow = CTimeSeries<double>(value);
         return true;
+    }
+    else
+    {
+         for (unsigned int i=0; i<nz; i++)
+             for (unsigned int j=0; i<nr; i++)
+                 cells[i][j].SetValue(propname,aquiutils::atof(value));
     }
     return false;
 
@@ -501,7 +540,7 @@ void Grid::write_to_vtp(const string &name,const CMatrix &res) const
             for (unsigned int j = 0; j < cells[i].size(); j++)
             {
                 yy = -dz*(i+0.5);
-                xx = dr*(j+0.5);
+                xx = dr*(j+0.5)+r_w;
                 zz = res[i][j];
 
 

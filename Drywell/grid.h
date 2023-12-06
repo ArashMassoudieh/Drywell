@@ -8,6 +8,7 @@
 #include "Matrix.h"
 #include "Vector.h"
 #include "BTC.h"
+#include "interface.h"
 
 //#define CMatrix_arma CMatrix
 //#define CVector_arma CVector
@@ -30,6 +31,9 @@ class Grid
 {
 public:
     Grid();
+    ~Grid();
+    Grid(const Grid &RHS);
+    Grid& operator=(const Grid &RHS);
     Grid(int nz, int nr, double depth, double radius);
     CVector_arma Residual(const CVector_arma &X, const double &dt);
     void SetStateVariable(const CVector_arma &X,const _time &t=_time::current);
@@ -56,6 +60,8 @@ public:
     }
 private:
     vector<vector<Cell>> cells;
+    vector<vector<Interface>> interfaces_r;
+    vector<vector<Interface>> interfaces_z;
     unsigned int nz;
     unsigned int nr;
     double dz;

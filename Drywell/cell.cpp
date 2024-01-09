@@ -8,13 +8,13 @@ Cell::Cell()
 
 void Cell::InitiateQuans()
 {
-    quants["theta"] = 0.2;
+    quants["theta"] = 0.25;
     quants["theta_past"] = 0.2;
     quants["theta_s"] = 0.4;
-    quants["theta_r"] = 0.08;
-    quants["alpha"] = 100;
-    quants["n"] = 1.58;
-    quants["Ks"] = 0.3;
+    quants["theta_r"] = 0.03;
+    quants["alpha"] = 30;
+    quants["n"] = 1.5;
+    quants["Ks"] = 1;
     quants["epsilon"] = 0.01;
     Boundary.type = boundaryType::none;
 }

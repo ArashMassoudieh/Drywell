@@ -48,6 +48,7 @@ public:
     void write_to_vtp(const string &name) const;
     void write_to_vtp(const string &name,const CMatrix &res) const;
     void WriteResults(const string &filename);
+    CTimeSeries<double> ExtractMoisture(int i, int j);
     _solution_state Solution_State;
     CMatrix H();
     CMatrix Se();

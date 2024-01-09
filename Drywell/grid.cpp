@@ -200,7 +200,7 @@ Cell* Grid::Neighbour(int i, int j, const edge &ej, bool op)
         }
         else if (ej == edge::up)
         {
-            if (i<nz-1)
+            if (i < nz-1)
                 return &cells[i+1][j];
             else
                 return nullptr;
@@ -208,7 +208,7 @@ Cell* Grid::Neighbour(int i, int j, const edge &ej, bool op)
         }
         else if (ej == edge::left)
         {
-            if (j<nr-1)
+            if (j < nr-1)
                 return &cells[i][j+1];
             else
                 return nullptr;
@@ -225,7 +225,7 @@ Cell* Grid::Neighbour(int i, int j, const edge &ej, bool op)
     else
     {   if (ej == edge::down)
         {
-            if (i<nz-1)
+            if (i< nz-1)
                 return &cells[i+1][j];
             else
                 return nullptr;
@@ -247,7 +247,7 @@ Cell* Grid::Neighbour(int i, int j, const edge &ej, bool op)
         }
         else if (ej == edge::right)
         {
-            if (j<nr-1)
+            if (j < nr-1)
                 return &cells[i][j+1];
             else
                 return nullptr;
@@ -263,7 +263,7 @@ CMatrix_arma Grid::Jacobian(const CVector_arma &X, const double &dt)
 {
     CVector_arma F_base = Residual(X,dt);
     CMatrix_arma M(X.getsize(),X.getsize());
-    for (unsigned int i=0; i<X.getsize(); i++)
+    for (unsigned int i=0; i< X.getsize(); i++)
     {
         CVector_arma X1 = X;
         X1[i]+=1e-6;
@@ -313,6 +313,8 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
     Solution_State.t = t0;
     Solution_State.dt = dt0;
     Well_Water_Depth.append(Solution_State.t,well_H);
+    CMatrix snapshot = Theta(_time::past);
+    results.push_back(snapshot);
     while (Solution_State.t + Solution_State.dt<t_end)
     {
         if (!OneStepSolve(Solution_State.dt))
@@ -655,9 +657,19 @@ void Grid::WriteResults(const string &filename)
 {
     for (unsigned k=0; k<results.size(); k++)
     {
-        string name = aquiutils::split(filename,'.')[0]+"_"+aquiutils::numbertostring(k+1)+".vtp";
+        string name = aquiutils::split(filename,'.')[0]+"_"+aquiutils::numbertostring(k+1,3)+".vtp";
         write_to_vtp(name,results[k]);
     }
+}
+
+CTimeSeries<double> Grid::ExtractMoisture(int i, int j)
+{
+    CTimeSeries<double> out;
+    for (unsigned k=0; k<results.size(); k++)
+    {
+        out.append(k,results[k][i][j]);
+    }
+    return out;
 }
 
 CMatrix Grid::H()

@@ -88,7 +88,7 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
                 }
                 else
                 {
-                    Res[j+nr*i] = cells[i][j].H(_time::current)-Neighbour(i,j,edge::right)->H(_time::current);
+                    Res[j+nr*i] = cells[i][j].Theta(_time::current)-Neighbour(i,j,edge::right)->Theta(_time::current);
                 }
             }
             else if (cells[i][j].Boundary.type==boundaryType::gradient)

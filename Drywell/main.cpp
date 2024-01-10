@@ -8,8 +8,8 @@ int main()
 {
     cout<<aquiutils::numbertostring(5, 3)<<std::endl;
 
-    int nz=10;
-    int nr=10;
+    int nz=6;
+    int nr=6;
     double dg=0.5;
     Grid G(nz,nr,1/dg,1.5);
     for (int i=0; i<nz; i++)
@@ -49,8 +49,8 @@ int main()
     G.SetProp("r_w","0.025");
     G.Solve(0,0.1,10,0.05);
     G.ExtractMoisture(1,0).writefile("/home/arash/Projects/Drywell_Results/Test/moist_well.csv");
-    G.ExtractMoisture(9,5).writefile("/home/arash/Projects/Drywell_Results/Test/moist_10_5.csv");
-    G.ExtractMoisture(5,9).writefile("/home/arash/Projects/Drywell_Results/Test/moist_5_10.csv");
+    //G.ExtractMoisture(9,5).writefile("/home/arash/Projects/Drywell_Results/Test/moist_10_5.csv");
+    //G.ExtractMoisture(5,9).writefile("/home/arash/Projects/Drywell_Results/Test/moist_5_10.csv");
     G.WriteResults("/home/arash/Projects/Drywell_Results/Test/theta5_1.vtp");
     G.WaterDepth().make_uniform(0.1).writefile("/home/arash/Projects/Drywell_Results/Test/waterdepth5_1.csv");
     cout<<"done!"<<endl;

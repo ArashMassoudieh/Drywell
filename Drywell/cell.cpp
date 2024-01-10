@@ -27,12 +27,16 @@ Cell::Cell(const Cell &RHS)
 {
     quants = RHS.quants;
     Boundary = RHS.Boundary;
+    center_r = RHS.center_r;
+    center_z = RHS.center_z;
 }
 
 Cell& Cell::operator=(const Cell &RHS)
 {
     quants = RHS.quants;
     Boundary = RHS.Boundary;
+    center_r = RHS.center_r;
+    center_z = RHS.center_z;
     return *this;
 }
 

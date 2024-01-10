@@ -42,10 +42,16 @@ public:
     {
         return qOut;
     }
+    double z() const {return center_z;}
+    double r() const {return center_r;}
+    void setz(const double &val) {center_z = val;}
+    double setr(const double &val) {center_r=val;}
 private:
     map<string,double> quants;
     Grid *parent;
     double qOut = 0;
+    double center_z;
+    double center_r;
 
 };
 

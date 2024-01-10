@@ -88,8 +88,7 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
                 }
                 else
                 {
-                    Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
-                    Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::right)->H(_time::current));
+                    Res[j+nr*i] = cells[i][j].H(_time::current)-Neighbour(i,j,edge::right)->H(_time::current);
                 }
             }
             else if (cells[i][j].Boundary.type==boundaryType::gradient)
@@ -372,6 +371,12 @@ bool Grid::SetProp(const string &propname, const string &value)
     else if (propname == "r_w")
     {
         r_w = aquiutils::atof(value);
+        for (unsigned int i=0; i<nz; i++)
+            for (unsigned int j=0; i<nr; i++)
+            {
+                cells[i][j].setr((j+0.5)*dr);
+                cells[i][j].setz(-(i+0.5)*dz);
+            }
         return true;
     }
     else if (propname == "pond_beta")
@@ -393,7 +398,9 @@ bool Grid::SetProp(const string &propname, const string &value)
     {
          for (unsigned int i=0; i<nz; i++)
              for (unsigned int j=0; i<nr; i++)
+             {
                  cells[i][j].SetValue(propname,aquiutils::atof(value));
+             }
     }
     return false;
 

@@ -59,6 +59,7 @@ public:
     {
         return Well_Water_Depth;
     }
+
 private:
     vector<vector<Cell>> cells;
     vector<vector<Interface>> interfaces_r;

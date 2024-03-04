@@ -1,27 +1,28 @@
 #include <iostream>
 #include "grid.h"
-
+#include "propertygenerator.h"
 
 using namespace std;
 
 int main()
 {
-    cout<<aquiutils::numbertostring(5, 3)<<std::endl;
 
-    int nz=6;
-    int nr=6;
+    PropertyGenerator P(20);
+    P.correlation_length_scale = 10000;
+    P.dx = 0.2;
+    P.assign_K_gauss();
+
+
+
+
+    int nz=5;
+    int nr=5;
     double dg=0.5;
     Grid G(nz,nr,1/dg,1.5);
     for (int i=0; i<nz; i++)
     {
-        if (i*4.0/double(nz)<=2)
-        {   G.cell(i,0)->Boundary.type = boundaryType::fixedmoisture;
-            G.cell(i,0)->Boundary.value = 0.4;
-        }
-        else
-        {   G.cell(i,0)->Boundary.type = boundaryType::symmetry;
-            G.cell(i,0)->Boundary.boundary_edge = edge::left;
-        }
+        G.cell(i,0)->Boundary.type = boundaryType::symmetry;
+        G.cell(i,0)->Boundary.boundary_edge = edge::left;
         G.cell(i,nr-1)->Boundary.type = boundaryType::symmetry;
         G.cell(i,nr-1)->Boundary.boundary_edge = edge::right;
     }
@@ -48,10 +49,11 @@ int main()
     G.SetProp("well_H_old","0");
     G.SetProp("r_w","0.025");
     G.Solve(0,0.1,10,0.05);
-    G.ExtractMoisture(1,0).writefile("/home/arash/Projects/Drywell_Results/Test/moist_well.csv");
-    //G.ExtractMoisture(9,5).writefile("/home/arash/Projects/Drywell_Results/Test/moist_10_5.csv");
-    //G.ExtractMoisture(5,9).writefile("/home/arash/Projects/Drywell_Results/Test/moist_5_10.csv");
+    //G.ExtractMoisture(1,0).writefile("/home/arash/Projects/Drywell_Results/Test/moist_well.csv");
+    //G.ExtractMoisture(10,5).writefile("/home/arash/Projects/Drywell_Results/Test/moist_10_5.csv");
+    //G.ExtractMoisture(5,10).writefile("/home/arash/Projects/Drywell_Results/Test/moist_5_10.csv");
     G.WriteResults("/home/arash/Projects/Drywell_Results/Test/theta5_1.vtp");
     G.WaterDepth().make_uniform(0.1).writefile("/home/arash/Projects/Drywell_Results/Test/waterdepth5_1.csv");
+    G.OutFlow().make_uniform(0.1).writefile("/home/arash/Projects/Drywell_Results/Test/outflow.csv");
     cout<<"done!"<<endl;
 }

@@ -37,7 +37,8 @@ SOURCES += \
     cell.cpp \
     grid.cpp \
     interface.cpp \
-    main.cpp
+    main.cpp \
+    propertygenerator.cpp
 
 HEADERS += \
     ../../Utilities/BTC.h \
@@ -54,7 +55,8 @@ HEADERS += \
     ../../Utilities/Vector_arma.h \
     cell.h \
     grid.h \
-    interface.h
+    interface.h \
+    propertygenerator.h
 
 
 INCLUDEPATH += ../../Utilities/

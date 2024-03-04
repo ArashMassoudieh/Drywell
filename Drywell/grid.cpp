@@ -125,6 +125,21 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
     return Res;
 }
 
+double Grid::CalcOutFlow()
+{
+    double out=0;
+    int i=nz-1;
+       for (unsigned int j=0; j<nr; j++)
+    {
+           if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
+           {
+               out += -1/dz*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current));
+               out += K(i,j,edge::up);
+           }
+    }
+    return out;
+}
+
 void Grid::SetStateVariable(const CVector_arma &X,const _time &t)
 {
     for (unsigned int i=0; i<nz; i++)
@@ -348,10 +363,10 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
                 Solution_State.dt/=Solution_State.dt_scale_factor;
             }
         }
-    CVector_arma X = GetStateVariable(_time::current);
-    SetStateVariable(X,_time::past);
-
-    cout<<Solution_State.t<<endl;
+        CVector_arma X = GetStateVariable(_time::current);
+        SetStateVariable(X,_time::past);
+        Outflow.append(Solution_State.t,CalcOutFlow());
+        cout<<Solution_State.t<<endl;
     }
     return true;
 }

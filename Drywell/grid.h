@@ -36,6 +36,7 @@ public:
     Grid& operator=(const Grid &RHS);
     Grid(int nz, int nr, double depth, double radius);
     CVector_arma Residual(const CVector_arma &X, const double &dt);
+    double CalcOutFlow();
     void SetStateVariable(const CVector_arma &X,const _time &t=_time::current);
     CMatrix_arma Jacobian(const CVector_arma &X, const double &dt);
     double getVal(int i, int j, const string &val, const edge &ej);
@@ -59,6 +60,10 @@ public:
     {
         return Well_Water_Depth;
     }
+    CTimeSeries<double> &OutFlow()
+    {
+        return Outflow;
+    }
 
 private:
     vector<vector<Cell>> cells;
@@ -80,6 +85,7 @@ private:
     double alpha;
     CTimeSeries<double> inflow;
     CTimeSeries<double> Well_Water_Depth;
+    CTimeSeries<double> Outflow;
 
 };
 

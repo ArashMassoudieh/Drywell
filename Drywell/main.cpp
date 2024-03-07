@@ -8,17 +8,36 @@ int main()
 {
 
     PropertyGenerator P(20);
-    P.correlation_length_scale = 10000;
+    P.correlation_length_scale = 1;
     P.dx = 0.2;
     P.assign_K_gauss();
+    P.Normalize_Ksat_normal_scores(0,1);
+    P.write("K_sat_normal_score","/home/arash/Projects/Drywell_Results/Test/K_sat_score_1.txt");
+    P.Normalize_Ksat_normal_scores(1,0.1);
+    P.write("K_sat_normal_score","/home/arash/Projects/Drywell_Results/Test/K_sat_score_2.txt");
+
+    CTimeSeries<double> K_sat_marginal_CDF("/home/arash/Projects/Drywell_Results/K_sat_Marginal_Distribution.csv");
+    CTimeSeries<double> alpha_marginal_CDF("/home/arash/Projects/Drywell_Results/K_sat_Marginal_Distribution.csv");
+    CTimeSeries<double> n_marginal_CDF("/home/arash/Projects/Drywell_Results/K_sat_Marginal_Distribution.csv");
+    P.SetCorr(params::alpha, 0.2);
+    P.SetCorr(params::n, 0.2);
+    P.SetMarginalDistribution("K_sat",K_sat_marginal_CDF);
+    P.SetMarginalDistribution("alpha",alpha_marginal_CDF);
+    P.SetMarginalDistribution("n",n_marginal_CDF);
+    P.PopulateRealValue("K_sat","K_sat_normal_score");
+    P.Populate_Alpha_n_normal_scores(params::alpha);
+    P.Populate_Alpha_n_normal_scores(params::n);
+    P.PopulateRealValue("alpha","alpha_normal_score");
+    P.PopulateRealValue("n","n_normal_score");
 
 
+    int nz=20;
+    int nr=20;
 
 
-    int nz=5;
-    int nr=5;
     double dg=0.5;
     Grid G(nz,nr,1/dg,1.5);
+    G.AssignProperty(&P);
     for (int i=0; i<nz; i++)
     {
         G.cell(i,0)->Boundary.type = boundaryType::symmetry;

@@ -421,6 +421,22 @@ bool Grid::SetProp(const string &propname, const string &value)
 
 }
 
+bool Grid::AssignProperty(PropertyGenerator *prop)
+{
+    if (prop->size()!=nz)
+        return false;
+    for (unsigned int i=0; i<nz; i++)
+    {
+        for (unsigned int j=0; j<nr; j++)
+        {
+            cells[i][j].SetValue("Ks",prop->at(i).realvalues.K_sat);
+            cells[i][j].SetValue("alpha", prop->at(i).realvalues.alpha);
+            cells[i][j].SetValue("n",prop->at(i).realvalues.n);
+        }
+    }
+    return true;
+}
+
 #ifdef use_VTK
 void Grid::write_to_vtp(const string &name) const
 {

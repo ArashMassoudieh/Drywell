@@ -9,6 +9,7 @@
 #include "Vector.h"
 #include "BTC.h"
 #include "interface.h"
+#include "propertygenerator.h"
 
 //#define CMatrix_arma CMatrix
 //#define CVector_arma CVector
@@ -64,7 +65,7 @@ public:
     {
         return Outflow;
     }
-
+    bool AssignProperty(PropertyGenerator *prop);
 private:
     vector<vector<Cell>> cells;
     vector<vector<Interface>> interfaces_r;

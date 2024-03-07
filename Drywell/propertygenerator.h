@@ -5,6 +5,7 @@
 #include <Matrix.h>
 #include <Vector.h>
 #include <gsl/gsl_rng.h>
+#include "BTC.h"
 
 using namespace std;
 
@@ -41,6 +42,8 @@ struct Propfull
     bool k_det = false;
 };
 
+enum class params {K_sat, alpha, n};
+
 class PropertyGenerator: public vector<Propfull>
 {
 public:
@@ -49,6 +52,18 @@ public:
     double dx;
     double correlation_length_scale;
     void assign_K_gauss();
+    double write(const string &quan, const string &filename) const;
+    void Normalize_Ksat_normal_scores(const double &mean, const double &std);
+    double mean(const string &quan) const;
+    double std(const string &quan) const;
+    vector<double> vals(const string &quan) const;
+    void SetMarginalDistribution(const string &quan, const CTimeSeries<double> series);
+    CTimeSeries<double> MarginalDistribution(const string &quan);
+    void PopulateRealValue(const string &quan, const string &quanfrom);
+    double val(const string &quan, int i) const;
+    bool SetVal(const string &quan, int i, const double &value);
+    void SetCorr(params, const double &value);
+    void Populate_Alpha_n_normal_scores(params p);
 private:
     CMatrix K_alpha_n_corr_matrix;
     double K_sat_normal_score_mean;
@@ -59,7 +74,9 @@ private:
     void assign_K_gauss(unsigned int i);
     unsigned int GetNumberOfPointsDetermined();
     vector<int> Determined();
-
+    map<string,CTimeSeries<double>> marginal_distributions;
+    double K_sat_alpha_correlation = 1;
+    double K_sat_n_correlation = 1;
     const gsl_rng_type * T;
     gsl_rng * r = gsl_rng_alloc (gsl_rng_taus);
 

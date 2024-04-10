@@ -52,10 +52,10 @@ public:
     double dx;
     double correlation_length_scale;
     void assign_K_gauss();
-    double write(const string &quan, const string &filename) const;
+    bool write(const string &quan, const string &filename) const;
     void Normalize_Ksat_normal_scores(const double &mean, const double &std);
-    double mean(const string &quan) const;
-    double std(const string &quan) const;
+    double mean(const string &quan, bool log=false) const;
+    double std(const string &quan, bool log=false) const;
     vector<double> vals(const string &quan) const;
     void SetMarginalDistribution(const string &quan, const CTimeSeries<double> series);
     CTimeSeries<double> MarginalDistribution(const string &quan);
@@ -64,6 +64,7 @@ public:
     bool SetVal(const string &quan, int i, const double &value);
     void SetCorr(params, const double &value);
     void Populate_Alpha_n_normal_scores(params p);
+    void Normalize(const string &quan, const double &denominator);
 private:
     CMatrix K_alpha_n_corr_matrix;
     double K_sat_normal_score_mean;

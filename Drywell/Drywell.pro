@@ -7,11 +7,8 @@ DEFINES += _arma
 DEFINES += use_VTK
 CONFIG += use_VTK
 
-#CONFIG += khiem
-#DEFINES += khiem
-
-CONFIG += Arash
-DEFINES += Arash
+CONFIG += khiem
+DEFINES += khiem
 
 #VTKBUILDPATH = /home/arash/Projects/VTK-9.2.0/
 #VTKBUILDPATH = /home/arash/Projects/VTK/VTK-build

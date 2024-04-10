@@ -115,22 +115,37 @@ void PropertyGenerator::Normalize_Ksat_normal_scores(const double &new_mean, con
     }
 }
 
-double PropertyGenerator::mean(const string &quan) const
+double PropertyGenerator::mean(const string &quan, bool log) const
 {
     CVector V(vals(quan));
-    return V.mean();
+    if (!log)
+        return V.mean();
+    else
+        return exp(V.Log().mean());
 }
 
-double PropertyGenerator::std(const string &quan) const
+double PropertyGenerator::std(const string &quan, bool log) const
 {
     CVector V(vals(quan));
-    return V.stdev();
+    if (!log)
+        return V.stdev();
+    else
+        return V.Log().stdev();
 }
 
-double PropertyGenerator::write(const string &quan, const string &filename) const
+void PropertyGenerator::Normalize(const string &quan,const double &denominator)
+{
+    for (int i=0; i<size(); i++)
+    {
+        SetVal(quan,i,val(quan,i)/denominator);
+    }
+}
+
+bool PropertyGenerator::write(const string &quan, const string &filename) const
 {
     CVector V(vals(quan));
     V.writetofile(filename);
+    return true;
 }
 
 

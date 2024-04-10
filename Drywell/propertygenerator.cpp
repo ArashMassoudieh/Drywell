@@ -58,7 +58,8 @@ void PropertyGenerator::assign_K_gauss(unsigned int i)
         mu = dotproduct(M_inv*M.V_21, M.V_RHS);
         sigma = 1.0 - dotproduct(M_inv*M.V_21, M.V_21);
 
-    double K_gauss = mu + gsl_ran_ugaussian(r)*sigma;
+        double u = gsl_ran_ugaussian(r);
+    double K_gauss = mu + u*sigma;
     at(i).k_det = true;
     at(i).normal_scores.K_sat = K_gauss;
 

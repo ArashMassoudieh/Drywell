@@ -35,9 +35,9 @@ correl_mat_vec PropertyGenerator::get_correll_matrix_vec(int i)
         for (int jj = 0; jj < num_determined; jj++)
         {
 #ifdef arma
-            Correl_Matrix_Vector.M_22(ii,jj) = exp(-fabs(determined[ii]-jj)*dx/correlation_length_scale);
+            Correl_Matrix_Vector.M_22(ii,jj) = exp(-fabs(determined[ii]-determined[jj])*dx/correlation_length_scale);
 #else
-            Correl_Matrix_Vector.M_22[ii][jj] = exp(-fabs(determined[ii]-jj)*dx/correlation_length_scale);
+            Correl_Matrix_Vector.M_22[ii][jj] = exp(-fabs(determined[ii]-determined[jj])*dx/correlation_length_scale);
 #endif // arma
         }
     }
@@ -233,11 +233,11 @@ CTimeSeries<double> PropertyGenerator::MarginalDistribution(const string &quan)
 
 void PropertyGenerator::PopulateRealValue(const string &quan, const string &quanfrom)
 {
-    CTimeSeries<double> inverseCDF = marginal_distributions[quan].inverse_cumulative_uniform(100);
+    CTimeSeries<double> inverseCDF = marginal_distributions[quan].LogTransformX().inverse_cumulative_uniform(100);
     for (unsigned int i=0; i<size(); i++)
     {
         double score = gsl_cdf_ugaussian_P(val(quanfrom,i));
-        double value = inverseCDF.interpol(score);
+        double value = exp(inverseCDF.interpol(score));
         SetVal(quan,i,value);
     }
 }

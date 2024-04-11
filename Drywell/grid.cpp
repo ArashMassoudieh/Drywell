@@ -305,7 +305,7 @@ bool Grid::OneStepSolve(const double &dt)
     Solution_State.number_of_iterations = 0;
     int count_error_expanding = 0;
 
-    while (err/(err_0+1e-3)>1e-3)
+    while (err/(err_0+dt)>1e-3)
     {
         CMatrix_arma J = Jacobian(X,dt);
         CVector_arma dx = Res/J;

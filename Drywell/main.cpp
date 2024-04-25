@@ -31,6 +31,7 @@ int main()
     P.Populate_Alpha_n_normal_scores(params::alpha); //Creates normal scores for alpha
     P.Populate_Alpha_n_normal_scores(params::n); //Creates normal scores for n
     P.PopulateRealValue("alpha","alpha_normal_score"); //Assign the actual values of alpha
+    P.Normalize("alpha",0.05);
     P.PopulateRealValue("n","n_normal_score"); //.. n
     P.write("K_sat","/home/arash/Projects/Drywell_Result/Heterogeneous/Test/K_sat.txt");
     P.write("alpha","/home/arash/Projects/Drywell_Result/Heterogeneous/Test/alpha.txt");

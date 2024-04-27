@@ -7,6 +7,8 @@ using namespace std;
 int main()
 {
 
+    enum class _mode {homogeneous, heterogeneous};
+    _mode mode = _mode::heterogeneous;
     int nz=20;
     int nr=20;
     PropertyGenerator P(nz);
@@ -45,7 +47,8 @@ cout<<"3"<<endl;
 cout<<"4"<<endl;
     double dg=1;
     Grid G(nz,nr,1/dg,1.5);
-    G.AssignProperty(&P); // Assign K_sat, alpha, n based on the Property Generator
+    if (mode == _mode::heterogeneous)
+        G.AssignProperty(&P); // Assign K_sat, alpha, n based on the Property Generator
 cout<<"5"<<endl;
     for (int i=0; i<nz; i++)
     {
@@ -70,8 +73,10 @@ cout<<"7"<<endl;
 
     G.SetProp("pond_alpha","1000.0");
     G.SetProp("pond_beta","2");
-    //G.SetProp("alpha","30");
-    //G.SetProp("n","1.5");
+if (mode == _mode::homogeneous)
+{   G.SetProp("alpha","30");
+    G.SetProp("n","1.5");
+}
 cout<<"7.1"<<endl;
     G.SetProp("inflow","/home/arash/Project/Drywell_Result/inflow_zero.txt");
 cout<<"7.2"<<endl;

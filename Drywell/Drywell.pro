@@ -10,9 +10,10 @@ CONFIG += use_VTK
 CONFIG += Arash
 DEFINES += Arash
 
-#VTKBUILDPATH = /home/arash/Projects/VTK-9.2.0/
-#VTKBUILDPATH = /home/arash/Projects/VTK/VTK-build
+
 Arash {
+    #VTKHEADERPATH = /home/arash/Projects/VTK-9.2.0/include/vtk-9.2
+    #VTKBUILDPATH = /home/arash/Projects/VTK-9.2.0/lib
     VTKBUILDPATH = /home/arash/Projects/VTK/VTK-build
     VTKHEADERPATH = /home/arash/Projects/VTK
     VTK_V = -9.0
@@ -196,6 +197,7 @@ use_VTK {
     LIBS += -L"/usr/local/lib/ -lsuperlu.so"
 
     #VTK Include files
+    INCLUDEPATH +=$${VTKHEADERPATH}
     INCLUDEPATH +=$${VTKHEADERPATH}/Common/Core
     INCLUDEPATH +=$${VTKBUILDPATH}/Common/Core
     INCLUDEPATH +=$${VTKHEADERPATH}/Common/Color

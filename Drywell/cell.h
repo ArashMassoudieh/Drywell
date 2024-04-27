@@ -45,7 +45,7 @@ public:
     double z() const {return center_z;}
     double r() const {return center_r;}
     void setz(const double &val) {center_z = val;}
-    double setr(const double &val) {center_r=val;}
+    void setr(const double &val) {center_r=val;}
 private:
     map<string,double> quants;
     Grid *parent;

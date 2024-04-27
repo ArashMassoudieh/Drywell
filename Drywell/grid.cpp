@@ -387,11 +387,14 @@ bool Grid::SetProp(const string &propname, const string &value)
     {
         r_w = aquiutils::atof(value);
         for (unsigned int i=0; i<nz; i++)
-            for (unsigned int j=0; i<nr; i++)
+        {   cout<<i<<endl;
+            for (unsigned int j=0; j<nr; j++)
             {
+                cout<<j<<","<<dr<<endl;
                 cells[i][j].setr((j+0.5)*dr);
                 cells[i][j].setz(-(i+0.5)*dz);
             }
+        }
         return true;
     }
     else if (propname == "pond_beta")
@@ -412,7 +415,7 @@ bool Grid::SetProp(const string &propname, const string &value)
     else
     {
          for (unsigned int i=0; i<nz; i++)
-             for (unsigned int j=0; i<nr; i++)
+             for (unsigned int j=0; j<nr; j++)
              {
                  cells[i][j].SetValue(propname,aquiutils::atof(value));
              }
@@ -568,7 +571,7 @@ void Grid::write_to_vtp(const string &name) const
 }
 
 
-void Grid::write_to_vtp(const string &name,const CMatrix &res) const
+void Grid::write_to_vtp(const string &name,const CMatrix &res, const string &quanname, const double &scale) const
 {
     vtkSmartPointer<vtkPoints> points_3 =
             vtkSmartPointer<vtkPoints>::New();
@@ -579,7 +582,7 @@ void Grid::write_to_vtp(const string &name,const CMatrix &res) const
 
         values->SetNumberOfComponents(1);
 
-        values->SetName("Moisture Content");
+        values->SetName(quanname.c_str());
 
 
 
@@ -588,10 +591,10 @@ void Grid::write_to_vtp(const string &name,const CMatrix &res) const
             {
                 yy = -dz*(i+0.5);
                 xx = dr*(j+0.5)+r_w;
-                zz = res[i][j];
+                zz = res[i][j]*scale;
 
 
-                float t[1] = { float(zz) };
+                float t[1] = { float(res[i][j]) };
                 points_3->InsertNextPoint(xx, yy, zz);
                 values->InsertNextTupleValue(t);
 
@@ -703,7 +706,16 @@ void Grid::WriteResults(const string &filename)
     for (unsigned k=0; k<results.size(); k++)
     {
         string name = aquiutils::split(filename,'.')[0]+"_"+aquiutils::numbertostring(k+1,3)+".vtp";
-        write_to_vtp(name,results[k]);
+        write_to_vtp(name,results[k],"Moisture Content",1);
+    }
+}
+
+void Grid::WriteResults(const string &quan, const string &filename)
+{
+    for (unsigned k=0; k<results.size(); k++)
+    {
+        CMatrix matrix = QuanMatrix(quan);
+        write_to_vtp(filename,matrix,quan,0.1/Max(quan));
     }
 }
 
@@ -746,6 +758,41 @@ CMatrix Grid::Se()
         for (unsigned int j = 0; j < cells[i].size(); j++)
         {
             out[i][j] = (cells[i][j].Theta(_time::current)-cells[i][j].getValue("theta_r"))/(cells[i][j].getValue("theta_s")-cells[i][j].getValue("theta_r"));
+        }
+    return out;
+}
+
+CMatrix Grid::QuanMatrix(const string &quan)
+{
+    CMatrix out(nz,nr);
+    for (unsigned int i = 0; i < cells.size(); i++)
+        for (unsigned int j = 0; j < cells[i].size(); j++)
+        {
+            out[i][j] = cells[i][j].getValue(quan);
+        }
+    return out;
+}
+
+double Grid::Max(const string &quan)
+{
+
+    double out = -1e12;
+    for (unsigned int i = 0; i < cells.size(); i++)
+        for (unsigned int j = 0; j < cells[i].size(); j++)
+        {
+            out = max(cells[i][j].getValue(quan),out);
+        }
+    return out;
+}
+
+double Grid::Min(const string &quan)
+{
+
+    double out = 1e12;
+    for (unsigned int i = 0; i < cells.size(); i++)
+        for (unsigned int j = 0; j < cells[i].size(); j++)
+        {
+            out = min(cells[i][j].getValue(quan),out);
         }
     return out;
 }

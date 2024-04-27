@@ -48,12 +48,16 @@ public:
         return &cells[i][j];
     }
     void write_to_vtp(const string &name) const;
-    void write_to_vtp(const string &name,const CMatrix &res) const;
+    void write_to_vtp(const string &name,const CMatrix &res,const string &quanname="Moisture Content", const double &scale = 1) const;
     void WriteResults(const string &filename);
+    double Max(const string &quan);
+    double Min(const string &quan);
+    void WriteResults(const string &quan, const string &filename);
     CTimeSeries<double> ExtractMoisture(int i, int j);
     _solution_state Solution_State;
     CMatrix H();
     CMatrix Se();
+    CMatrix QuanMatrix(const string &quan);
     CMatrix Theta(_time t);
     vector<CMatrix> results;
     bool SetProp(const string &propname, const string &value);

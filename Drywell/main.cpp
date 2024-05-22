@@ -6,7 +6,7 @@ using namespace std;
 
 int main()
 {
-
+    string Results_Folder = "F:/Projects/Drywell_Result";
     enum class _mode {homogeneous, heterogeneous};
     _mode mode = _mode::heterogeneous;
     int nz=20;
@@ -16,13 +16,13 @@ int main()
     P.dx = 0.2;
     P.assign_K_gauss(); // Assigns normal scores for K_sat
     P.Normalize_Ksat_normal_scores(0,1);
-    P.write("K_sat_normal_score","/home/arash/Projects/Drywell_Result/Heterogeneous/Test/K_sat_score_1.txt");
+    P.write("K_sat_normal_score", Results_Folder + "/Heterogeneous/Test/K_sat_score_1.txt");
     P.Normalize_Ksat_normal_scores(1,0.1);
-    P.write("K_sat_normal_score","/home/arash/Projects/Drywell_Result/Heterogeneous/Test/K_sat_score_2.txt");
+    P.write("K_sat_normal_score",Results_Folder + "/Heterogeneous/Test/K_sat_score_2.txt");
 cout<<"1"<<endl;
-    CTimeSeries<double> K_sat_marginal_CDF("/home/arash/Projects/Drywell_Result/Heterogeneous/K_sat_Marginal_Distribution.csv"); // Loading Cummulative Distributions
-    CTimeSeries<double> alpha_marginal_CDF("/home/arash/Projects/Drywell_Result/Heterogeneous/alpha_Marginal_Distribution.csv");
-    CTimeSeries<double> n_marginal_CDF("/home/arash/Projects/Drywell_Result/Heterogeneous/n_Marginal_Distribution.csv");
+    CTimeSeries<double> K_sat_marginal_CDF(Results_Folder + "/Heterogeneous/K_sat_Marginal_Distribution.csv"); // Loading Cummulative Distributions
+    CTimeSeries<double> alpha_marginal_CDF(Results_Folder + "/Heterogeneous/alpha_Marginal_Distribution.csv");
+    CTimeSeries<double> n_marginal_CDF(Results_Folder + "/Heterogeneous/n_Marginal_Distribution.csv");
     P.SetCorr(params::alpha, 0.378); //Correlation between alpha and K_sat normal scores
     P.SetCorr(params::n, 0.2); //Correlation between n and K_sat normal scores
 cout<<"2"<<endl;
@@ -41,9 +41,9 @@ cout<<"3"<<endl;
     P.PopulateRealValue("alpha","alpha_normal_score"); //Assign the actual values of alpha
     P.Normalize("alpha",0.05);
     P.PopulateRealValue("n","n_normal_score"); //.. n
-    P.write("K_sat","/home/arash/Projects/Drywell_Result/Heterogeneous/Test/K_sat.txt");
-    P.write("alpha","/home/arash/Projects/Drywell_Result/Heterogeneous/Test/alpha.txt");
-    P.write("n","/home/arash/Projects/Drywell_Result/Heterogeneous/Test/n.txt");
+    P.write("K_sat", Results_Folder + "/Heterogeneous/Test/K_sat.txt");
+    P.write("alpha", Results_Folder + "/Heterogeneous/Test/alpha.txt");
+    P.write("n", Results_Folder + "/Heterogeneous/Test/n.txt");
 cout<<"4"<<endl;
     double dg=1;
     Grid G(nz,nr,1/dg,1.5);
@@ -78,7 +78,7 @@ if (mode == _mode::homogeneous)
     G.SetProp("n","1.5");
 }
 cout<<"7.1"<<endl;
-    G.SetProp("inflow","/home/arash/Project/Drywell_Result/inflow_zero.txt");
+    G.SetProp("inflow", Results_Folder + "/inflow_zero.txt");
 cout<<"7.2"<<endl;
     G.SetProp("well_H","0");
 cout<<"7.3"<<endl;
@@ -88,18 +88,18 @@ cout<<"7.4"<<endl;
 cout<<"8"<<endl;
     G.Solve(0,0.1,10,0.5);
 cout<<"9"<<endl;
-    G.ExtractMoisture(1,0).writefile("/home/arash/Projects/Drywell_Result/Heterogeneous/Test/moist_well.csv");
+    G.ExtractMoisture(1,0).writefile(Results_Folder + "/Heterogeneous/Test/moist_well.csv");
     //G.ExtractMoisture(9,5).writefile("/home/arash/Projects/Drywell_Results/Test/moist_10_5.csv");
     //G.ExtractMoisture(5,9).writefile("/home/arash/Projects/Drywell_Results/Test/moist_5_10.csv");
 cout<<"9"<<endl;
-    G.WriteResults("/home/arash/Projects/Drywell_Result/Heterogeneous/Test/theta.vtp");
+    G.WriteResults(Results_Folder + "/Heterogeneous/Test/theta.vtp");
 cout<<"9.1"<<endl;
-    G.WriteResults("alpha","/home/arash/Projects/Drywell_Result/Heterogeneous/Test/alpha.vtp");
+    G.WriteResults("alpha", Results_Folder + "/Heterogeneous/Test/alpha.vtp");
 cout<<"9.2"<<endl;
-    G.WriteResults("Ks","/home/arash/Projects/Drywell_Result/Heterogeneous/Test/Ksat.vtp");
+    G.WriteResults("Ks", Results_Folder + "/Heterogeneous/Test/Ksat.vtp");
 cout<<"9.3"<<endl;
-    G.WriteResults("n","/home/arash/Projects/Drywell_Result/Heterogeneous/Test/n.vtp");
+    G.WriteResults("n", Results_Folder + "/Heterogeneous/Test/n.vtp");
 cout<<"9.4"<<endl;
-    G.WaterDepth().make_uniform(0.1).writefile("/home/arash/Projects/Drywell_Result/Heterogeneous/Test/waterdepth.csv");
+    G.WaterDepth().make_uniform(0.1).writefile(Results_Folder + "/Heterogeneous/Test/waterdepth.csv");
 cout<<"done!"<<endl;
 }

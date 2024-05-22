@@ -41,6 +41,7 @@ public:
     void SetStateVariable(const CVector_arma &X,const _time &t=_time::current);
     CMatrix_arma Jacobian(const CVector_arma &X, const double &dt);
     double getVal(int i, int j, const string &val, const edge &ej);
+    double getVal(int i, int j, prop val, const edge& ej);
     bool OneStepSolve(const double &dt);
     bool Solve(const double &t0, const double &dt0, const double &t_end, const double &write_interval);
     Cell* cell(int i, int j)

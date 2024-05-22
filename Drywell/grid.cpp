@@ -180,9 +180,9 @@ double Grid::K(int i,int j,const edge &ej)
     Cell* neighbour = Neighbour(i,j,ej);
     if (!neighbour)
         neighbour = &cells[i][j];
-    double Se = min(max((max(cells[i][j].Theta(_time::current),neighbour->Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6),0.99999);
-    double m = 1.0-1.0/getVal(i,j,"n",ej);
-    double K = pow(Se,0.5)*getVal(i,j,"Ks",ej)*pow(1-pow(1-pow(Se,1.0/m),m),2);
+    double Se = min(max((max(cells[i][j].Theta(_time::current),neighbour->Theta(_time::current))-getVal(i,j,prop::theta_r,ej))/(getVal(i,j,prop::theta_s,ej)-getVal(i,j,prop::theta_r,ej)),1e-6),0.99999);
+    double m = 1.0-1.0/getVal(i,j,prop::n,ej);
+    double K = pow(Se,0.5)*getVal(i,j,prop::Ks,ej)*pow(1-pow(1-pow(Se,1.0/m),m),2);
     return K;
 
 }
@@ -190,12 +190,12 @@ double Grid::K(int i,int j,const edge &ej)
 double Grid::invC(int i,int j,const edge &ej)
 {
     double C;
-    double Se = min(max((max(cells[i][j].Theta(_time::current),Neighbour(i,j,ej)->Theta(_time::current))-getVal(i,j,"theta_r",ej))/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej)),1e-6),0.99999);
-    double m = 1.0-1.0/getVal(i,j,"n",ej);
-    if (getVal(i,j,"theta",ej)>getVal(i,j,"theta_s",ej))
-        C = 1.0/getVal(i,j,"epsilon",ej);
+    double Se = min(max((max(cells[i][j].Theta(_time::current),Neighbour(i,j,ej)->Theta(_time::current))-getVal(i,j,prop::theta_r,ej))/(getVal(i,j,prop::theta_s,ej)-getVal(i,j,prop::theta_s,ej)),1e-6),0.99999);
+    double m = 1.0-1.0/getVal(i,j,prop::n,ej);
+    if (getVal(i,j,prop::theta,ej)>getVal(i,j,prop::theta_s,ej))
+        C = 1.0/getVal(i,j,prop::epsilon,ej);
     else
-        C = 1.0/getVal(i,j,"alpha",ej)/(getVal(i,j,"theta_s",ej)-getVal(i,j,"theta_r",ej))*pow(pow(Se,-m)-1,-m)*pow(Se,-m-1);
+        C = 1.0/getVal(i,j,prop::alpha,ej)/(getVal(i,j,prop::theta_s,ej)-getVal(i,j,prop::theta_r,ej))*pow(pow(Se,-m)-1,-m)*pow(Se,-m-1);
     return C;
 }
 
@@ -208,6 +208,17 @@ double Grid::getVal(int i, int j, const string &val, const edge &ej)
     return 0.5*(cells[i][j].getValue(val)+neighbour->getValue(val));
 
 }
+
+double Grid::getVal(int i, int j, prop val, const edge& ej)
+{
+    Cell* neighbour = Neighbour(i, j, ej);
+    if (!neighbour)
+        neighbour = &cells[i][j];
+
+    return 0.5 * (cells[i][j].getValue(val) + neighbour->getValue(val));
+
+}
+
 
 Cell* Grid::Neighbour(int i, int j, const edge &ej, bool op)
 {
@@ -275,6 +286,7 @@ Cell* Grid::Neighbour(int i, int j, const edge &ej, bool op)
 
         }
     }
+    return nullptr;
 
 }
 
@@ -757,7 +769,7 @@ CMatrix Grid::Se()
     for (unsigned int i = 0; i < cells.size(); i++)
         for (unsigned int j = 0; j < cells[i].size(); j++)
         {
-            out[i][j] = (cells[i][j].Theta(_time::current)-cells[i][j].getValue("theta_r"))/(cells[i][j].getValue("theta_s")-cells[i][j].getValue("theta_r"));
+            out[i][j] = (cells[i][j].Theta(_time::current)-cells[i][j].getValue(prop::theta_r))/(cells[i][j].getValue(prop::theta_s)-cells[i][j].getValue(prop::theta_r));
         }
     return out;
 }

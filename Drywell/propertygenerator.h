@@ -11,7 +11,7 @@ using namespace std;
 
 struct correl_mat_vec
 {
-#ifdef  arma
+#ifdef  _arma
     CMatrix_arma M_22;
     CVector_arma V_21;
     CVector_arma V_RHS;

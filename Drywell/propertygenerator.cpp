@@ -19,10 +19,10 @@ correl_mat_vec PropertyGenerator::get_correll_matrix_vec(int i)
     correl_mat_vec Correl_Matrix_Vector;
     int num_determined = GetNumberOfPointsDetermined();
     vector<int> determined = Determined();
-#ifdef arma
-    M.M_22 = CMatrix_arma(num_determined);
-    M.V_21 = CVector_arma(num_determined);
-    M.V_RHS = CVector_arma(num_determined);
+#ifdef _arma
+    Correl_Matrix_Vector.M_22 = CMatrix_arma(num_determined);
+    Correl_Matrix_Vector.V_21 = CVector_arma(num_determined);
+    Correl_Matrix_Vector.V_RHS = CVector_arma(num_determined);
 #else
     Correl_Matrix_Vector.M_22 = CMatrix(num_determined);
     Correl_Matrix_Vector.V_21 = CVector(num_determined);
@@ -34,7 +34,7 @@ correl_mat_vec PropertyGenerator::get_correll_matrix_vec(int i)
         Correl_Matrix_Vector.V_RHS[ii] = at(determined[ii]).normal_scores.K_sat;
         for (int jj = 0; jj < num_determined; jj++)
         {
-#ifdef arma
+#ifdef _arma
             Correl_Matrix_Vector.M_22(ii,jj) = exp(-fabs(determined[ii]-determined[jj])*dx/correlation_length_scale);
 #else
             Correl_Matrix_Vector.M_22[ii][jj] = exp(-fabs(determined[ii]-determined[jj])*dx/correlation_length_scale);
@@ -50,7 +50,7 @@ void PropertyGenerator::assign_K_gauss(unsigned int i)
     double mu;
     double sigma;
 
-#ifdef arma
+#ifdef _arma
         CMatrix_arma M_inv = inv(M.M_22);
 #else
         CMatrix M_inv = Invert(M.M_22);

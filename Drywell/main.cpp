@@ -2,11 +2,15 @@
 #include "grid.h"
 #include "propertygenerator.h"
 
+#ifdef VALGRIND
+#include <valgrind/callgrind.h>
+#endif
+
 using namespace std;
 
 int main()
 {
-    string Results_Folder = "F:/Projects/Drywell_Result";
+    string Results_Folder = "/home/arash/Projects/Drywell_Result";
     enum class _mode {homogeneous, heterogeneous};
     _mode mode = _mode::heterogeneous;
     int nz=20;
@@ -45,7 +49,7 @@ cout<<"3"<<endl;
     P.write("alpha", Results_Folder + "/Heterogeneous/Test/alpha.txt");
     P.write("n", Results_Folder + "/Heterogeneous/Test/n.txt");
 cout<<"4"<<endl;
-    double dg=1;
+    double dg=0.5;
     Grid G(nz,nr,1/dg,1.5);
     if (mode == _mode::heterogeneous)
         G.AssignProperty(&P); // Assign K_sat, alpha, n based on the Property Generator
@@ -86,7 +90,7 @@ cout<<"7.3"<<endl;
 cout<<"7.4"<<endl;
     G.SetProp("r_w","0.025");
 cout<<"8"<<endl;
-    G.Solve(0,0.1,10,0.5);
+    G.Solve(0,0.1,10,0.1);
 cout<<"9"<<endl;
     G.ExtractMoisture(1,0).writefile(Results_Folder + "/Heterogeneous/Test/moist_well.csv");
     //G.ExtractMoisture(9,5).writefile("/home/arash/Projects/Drywell_Results/Test/moist_10_5.csv");
@@ -102,4 +106,9 @@ cout<<"9.3"<<endl;
 cout<<"9.4"<<endl;
     G.WaterDepth().make_uniform(0.1).writefile(Results_Folder + "/Heterogeneous/Test/waterdepth.csv");
 cout<<"done!"<<endl;
+
+#ifdef VALGRIND
+    CALLGRIND_TOGGLE_COLLECT;
+    CALLGRIND_STOP_INSTRUMENTATION;
+#endif
 }

@@ -7,6 +7,8 @@ DEFINES += _arma
 DEFINES += use_VTK
 CONFIG += use_VTK
 
+DEFINES += VALGRIND
+
 CONFIG += Arash
 DEFINES += Arash
 

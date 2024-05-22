@@ -317,7 +317,7 @@ bool Grid::OneStepSolve(const double &dt)
     Solution_State.number_of_iterations = 0;
     int count_error_expanding = 0;
 
-    while (err/(err_0+dt)>1e-3)
+    while (err/(err_0+dt)>1e-3 && err*sqrt(dt)>1e-6)
     {
         CMatrix_arma J = Jacobian(X,dt);
         CVector_arma dx = Res/J;
@@ -333,7 +333,7 @@ bool Grid::OneStepSolve(const double &dt)
         Solution_State.number_of_iterations ++;
         if (Solution_State.number_of_iterations>Solution_State.max_iterations || count_error_expanding>5 || !(err==err))
         {
-            //cout<<"Interations: "<<Solution_State.number_of_iterations<<", Error Expanding: "<<count_error_expanding<<", Error: "<<err<< ",Ini Error:"<< err_0<<" dt: "<<dt<< endl;
+            cout<<"Interations: "<<Solution_State.number_of_iterations<<", Error Expanding: "<<count_error_expanding<<", Error: "<<err<< ",Ini Error:"<< err_0<<" dt: "<<dt<< endl;
             SetStateVariable(X0);
             return false;
         }

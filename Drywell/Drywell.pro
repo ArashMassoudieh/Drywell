@@ -3,11 +3,11 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
-DEFINES += _arma
+DEFINES += __arma
 DEFINES += use_VTK
 CONFIG += use_VTK
 
-DEFINES += VALGRIND
+#DEFINES += VALGRIND
 
 CONFIG += Arash
 DEFINES += Arash

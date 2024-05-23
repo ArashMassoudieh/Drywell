@@ -321,14 +321,30 @@ bool Grid::OneStepSolve(const double &dt)
     {
         CMatrix_arma J = Jacobian(X,dt);
         CVector_arma dx = Res/J;
-        X-=dx;
+
+        X-= (Solution_State.lambda*dx);
+        CVector_arma X_l = (1.25*Solution_State.lambda*dx);
+        CVector_arma X_s = (0.75*Solution_State.lambda*dx);
+
+        X.writetofile("X.txt");
+        X_l.writetofile("X_l.txt");
+        X_s.writetofile("X_s.txt");
         Res = Residual(X,dt);
+        CVector_arma Res_l = Residual(X_l,dt);
+        CVector_arma Res_s = Residual(X_s,dt);
+        Res.writetofile("Res.txt");
+        Res_l.writetofile("Res_l.txt");
+        Res_s.writetofile("Res_s.txt");
+
         double err1=Res.norm2();
+        double err_s=Res_s.norm2();
+        double err_l=Res_l.norm2();
+
         if (err1>err)
         {
             count_error_expanding++;
         }
-        err = err1;
+        err=err1;
 
         Solution_State.number_of_iterations ++;
         if (Solution_State.number_of_iterations>Solution_State.max_iterations || count_error_expanding>5 || !(err==err))
@@ -379,7 +395,7 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
         CVector_arma X = GetStateVariable(_time::current);
         SetStateVariable(X,_time::past);
         Outflow.append(Solution_State.t,CalcOutFlow());
-        cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<endl;
+        cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<", Lamda = "<<Solution_State.lambda <<endl;
     }
     return true;
 }

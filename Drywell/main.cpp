@@ -13,8 +13,8 @@ int main()
     string Results_Folder = "/home/arash/Projects/Drywell_Result";
     enum class _mode {homogeneous, heterogeneous};
     _mode mode = _mode::heterogeneous;
-    int nz=20;
-    int nr=20;
+    int nz=5;
+    int nr=5;
     PropertyGenerator P(nz);
     P.correlation_length_scale = 1;
     P.dx = 0.2;

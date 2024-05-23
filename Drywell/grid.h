@@ -27,6 +27,7 @@ struct _solution_state
     double dt_scale_factor_fail = 0.2;
     int max_iterations = 100;
     double err;
+    double lambda=1;
 };
 
 class Grid

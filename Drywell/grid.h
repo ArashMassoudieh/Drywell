@@ -38,7 +38,7 @@ public:
     Grid(const Grid &RHS);
     Grid& operator=(const Grid &RHS);
     Grid(int nz, int nr, double depth, double radius);
-    CVector_arma Residual(const CVector_arma &X, const double &dt);
+    CVector_arma Residual(const CVector_arma &X, const double &dt, bool resetstatevariables = false);
     double CalcOutFlow();
     void SetStateVariable(const CVector_arma &X,const _time &t=_time::current);
     CMatrix_arma Jacobian(const CVector_arma &X, const double &dt);
@@ -59,6 +59,7 @@ public:
     CTimeSeries<double> ExtractMoisture(int i, int j);
     _solution_state Solution_State;
     CMatrix H();
+    void UpdateH();
     CMatrix Se();
     CMatrix QuanMatrix(const string &quan);
     CMatrix Theta(_time t);

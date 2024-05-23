@@ -74,6 +74,8 @@ double Cell::getValue(const string &quan) const
         return quants.Ks;
     else if (quan == "epsilon")
         return quants.epsilon;
+    else if (quan == "H")
+        return quants.H;
     else
         return 0;
 }
@@ -99,6 +101,8 @@ void Cell::SetValue(const string &quan, const double &value)
         quants.Ks = value;
     else if (quan == "epsilon")
         quants.epsilon = value;
+    else if (quan == "H")
+        quants.H = value;
 }
 
 double Cell::getValue(prop quan) const
@@ -129,6 +133,9 @@ double Cell::getValue(prop quan) const
         case prop::theta_s:
             return quants.theta_s;
             break;
+    case prop::H:
+        return quants.H;
+        break;
     }
     
 }
@@ -160,6 +167,9 @@ void Cell::SetValue(prop quan, const double& value)
         break;
     case prop::theta_s:
         quants.theta_s = value;
+        break;
+    case prop::H:
+        quants.H = value;
         break;
     }
 
@@ -197,15 +207,19 @@ void Cell::SetBoundary(boundaryType typ, edge boundaryEdge, const double &value)
     Boundary.value = value;
 }
 
-double Cell::H(_time t) const
+double Cell::H(_time t, bool calc) const
 {
-    double Se = (Theta(t)-quants.theta_r)/(quants.theta_s-quants.theta_r);
-    double H;
-    H = -1.0/quants.alpha*pow(pow(max(min(Se,0.999),1e-6),-quants.n/(quants.n-1))-1,1/quants.n);
-    if (Se>0.999)
-       H += (Se-0.999)/quants.epsilon;
+    if (calc)
+    {   double Se = (Theta(t)-quants.theta_r)/(quants.theta_s-quants.theta_r);
+        double H;
+        H = -1.0/quants.alpha*pow(pow(max(min(Se,0.999),1e-6),-quants.n/(quants.n-1))-1,1/quants.n);
+        if (Se>0.999)
+           H += (Se-0.999)/quants.epsilon;
 
-    return H;
+        return H;
+    }
+    else
+        return quants.H;
 }
 
 

@@ -54,12 +54,14 @@ Grid::Grid(int _nz, int _nr, double depth, double radius)
         interfaces_z.resize(nr);
 }
 
-CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
+CVector_arma Grid::Residual(const CVector_arma &X, const double &dt, bool resetstatevariables)
 {
     CVector_arma Res(nr*nz+1);
+    CVector_arma X_old;
+    if (resetstatevariables)
+        X_old = GetStateVariable();
     SetStateVariable(X);
-    CMatrix Pressure = H();
-    CMatrix Saturation = Se();
+    UpdateH();
     Res[nz*nr] = (2*pi*(r_w+dr/2)*(well_H<0?1:0)+alpha*beta*pow(max(well_H,0.0),beta-1))*(well_H-well_H_old)/dt - inflow.interpol(Solution_State.t);
     for (unsigned int i=0; i<nz; i++)
     {   double lower_el = -dz*(i+1);
@@ -70,10 +72,10 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
             if (cells[i][j].Boundary.type==boundaryType::none)
             {
                 Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
-                Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::left)->H(_time::current));
-                Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::right)->H(_time::current));
-                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current));
-                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::down)->H(_time::current));
+                Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::left)->H(_time::current,false));
+                Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::right)->H(_time::current,false));
+                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::up)->H(_time::current,false));
+                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::down)->H(_time::current,false));
                 Res[j+nr*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
             }
             else if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
@@ -83,8 +85,8 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
             else if (cells[i][j].Boundary.type==boundaryType::fixedpressure)
             {
                 if (interface_length>0)
-                {   Res[j+nr*i] = cells[i][j].H(_time::current) - max(well_H+(i+1)*dz,0.0)*(interface_length/dz);
-                    Res[nz*nr]+=2*interface_length*pi*(r_w+dr/2)*K(i,j,edge::right)*(max(well_H+(i+1)*dz,0.0)-Neighbour(i,j,edge::right)->H(_time::current));
+                {   Res[j+nr*i] = cells[i][j].H(_time::current,false) - max(well_H+(i+1)*dz,0.0)*(interface_length/dz);
+                    Res[nz*nr]+=2*interface_length*pi*(r_w+dr/2)*K(i,j,edge::right)*(max(well_H+(i+1)*dz,0.0)-Neighbour(i,j,edge::right)->H(_time::current,false));
                 }
                 else
                 {
@@ -103,24 +105,29 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt)
                 Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
                 if (cells[i][j].Boundary.boundary_edge!=edge::left && Neighbour(i,j,edge::left))
                 {
-                    Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::left)->H(_time::current));
+                    Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::left)->H(_time::current,false));
                 }
                 if (cells[i][j].Boundary.boundary_edge!=edge::right && Neighbour(i,j,edge::right))
                 {
-                    Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::right)->H(_time::current));
+                    Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::right)->H(_time::current,false));
                 }
                 if (cells[i][j].Boundary.boundary_edge!=edge::up && Neighbour(i,j,edge::up))
                 {
-                    Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current));
+                    Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::up)->H(_time::current,false));
                 }
                 if (cells[i][j].Boundary.boundary_edge!=edge::down && Neighbour(i,j,edge::down))
-                {   Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::down)->H(_time::current));
+                {   Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::down)->H(_time::current,false));
                     Res[j+nr*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
                 }
 
             }
 
         }
+    }
+
+    if (resetstatevariables)
+    {   SetStateVariable(X_old);
+        UpdateH();
     }
     return Res;
 }
@@ -300,7 +307,7 @@ CMatrix_arma Grid::Jacobian(const CVector_arma &X, const double &dt)
     {
         CVector_arma X1 = X;
         X1[i]+=1e-6;
-        CVector_arma F1 = Residual(X1,dt);
+        CVector_arma F1 = Residual(X1,dt, true);
         for (unsigned int j=0; j<X.num; j++)
             M(j,i) = (F1[j]-F_base[j])/1e-6;
     }
@@ -321,24 +328,26 @@ bool Grid::OneStepSolve(const double &dt)
     {
         CMatrix_arma J = Jacobian(X,dt);
         CVector_arma dx = Res/J;
-
+        CVector_arma X_s = X-(0.9*Solution_State.lambda*dx);
         X-= (Solution_State.lambda*dx);
-        CVector_arma X_l = (1.25*Solution_State.lambda*dx);
-        CVector_arma X_s = (0.75*Solution_State.lambda*dx);
+
 
         X.writetofile("X.txt");
-        X_l.writetofile("X_l.txt");
-        X_s.writetofile("X_s.txt");
-        Res = Residual(X,dt);
-        CVector_arma Res_l = Residual(X_l,dt);
-        CVector_arma Res_s = Residual(X_s,dt);
+        Res = Residual(X,dt,true);
+
+        CVector_arma Res_s = Residual(X_s,dt,true);
         Res.writetofile("Res.txt");
-        Res_l.writetofile("Res_l.txt");
-        Res_s.writetofile("Res_s.txt");
 
         double err1=Res.norm2();
         double err_s=Res_s.norm2();
-        double err_l=Res_l.norm2();
+
+        if (err_s<err1)
+        {   Solution_State.lambda = max(Solution_State.lambda*0.9,0.1);
+            X = X_s;
+            err1 = err_s;
+        }
+        else
+            Solution_State.lambda = min(Solution_State.lambda/0.9,3.0);
 
         if (err1>err)
         {
@@ -767,6 +776,17 @@ CMatrix Grid::H()
             out[i][j] = cells[i][j].H(_time::current);
         }
     return out;
+}
+
+void Grid::UpdateH()
+{
+    CMatrix out(nz,nr);
+    for (unsigned int i = 0; i < cells.size(); i++)
+        for (unsigned int j = 0; j < cells[i].size(); j++)
+        {
+            cells[i][j].SetValue(prop::H,cells[i][j].H(_time::current));
+        }
+
 }
 
 CMatrix Grid::Theta(_time t)

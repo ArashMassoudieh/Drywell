@@ -9,7 +9,7 @@ using namespace std;
 enum class edge {left, right, up, down};
 enum class _time {past, current, both};
 enum class boundaryType {none, gradient, fixedpressure, fixedmoisture, symmetry};
-enum class prop {theta, theta_past, theta_s, theta_r, alpha, n, Ks, epsilon};
+enum class prop {theta, theta_past, theta_s, theta_r, alpha, n, Ks, epsilon, H};
 struct boundary
 {
     boundaryType type;
@@ -27,6 +27,8 @@ struct _quantypes
     double n = 1.5;
     double Ks = 1;
     double epsilon = 0.01;
+    double H;
+
 };
 
 class Grid;
@@ -47,7 +49,7 @@ public:
     void SetValue(prop property, const double& value);
     boundary Boundary;
     void SetBoundary(boundaryType typ, edge boundaryEdge, const double &value = 0);
-    double H(_time t) const;
+    double H(_time t, bool calc = true) const;
     void SetQOut(const double &val)
     {
         qOut = val;

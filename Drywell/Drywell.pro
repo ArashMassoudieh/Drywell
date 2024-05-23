@@ -3,7 +3,7 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
-DEFINES += __arma
+DEFINES += _arma
 DEFINES += use_VTK
 CONFIG += use_VTK
 
@@ -12,6 +12,7 @@ CONFIG += use_VTK
 CONFIG += Arash
 DEFINES += Arash
 
+DEFINES += VALGRIND
 
 Arash {
     #VTKHEADERPATH = /home/arash/Projects/VTK-9.2.0/include/vtk-9.2

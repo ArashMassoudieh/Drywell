@@ -187,6 +187,7 @@ double Grid::K(int i,int j,const edge &ej)
     Cell* neighbour = Neighbour(i,j,ej);
     if (!neighbour)
         neighbour = &cells[i][j];
+    double Se1 = (cells[i][j].Theta(_time::current) - getVal(i, j, prop::theta_r, ej)) / (getVal(i, j, prop::theta_s, ej) - getVal(i, j, prop::theta_r, ej)), 1e-6), 0.99999);
     double Se = min(max((max(cells[i][j].Theta(_time::current),neighbour->Theta(_time::current))-getVal(i,j,prop::theta_r,ej))/(getVal(i,j,prop::theta_s,ej)-getVal(i,j,prop::theta_r,ej)),1e-6),0.99999);
     double m = 1.0-1.0/getVal(i,j,prop::n,ej);
     double K = pow(Se,0.5)*getVal(i,j,prop::Ks,ej)*pow(1-pow(1-pow(Se,1.0/m),m),2);
@@ -324,15 +325,22 @@ bool Grid::OneStepSolve(const double &dt)
     Solution_State.number_of_iterations = 0;
     int count_error_expanding = 0;
 
-    while (err/(err_0+dt)>1e-3)
+    while (err/(err_0+dt)>1e-3 || err>1e-6)
     {
         CMatrix_arma J = Jacobian(X,dt);
-        CVector_arma dx = Res/J;
-        CVector_arma X_s = X-(0.9*Solution_State.lambda*dx);
-        X-= (Solution_State.lambda*dx);
-
-
+        J.writetofile("J.txt");
+        Res.writetofile("Res.txt");
         X.writetofile("X.txt");
+        CVector_arma dx = Res/J;
+        if (dx.num != X.num)
+        {
+            Solution_State.err = err; 
+            return false;
+        }
+        CVector_arma X_s = X-(0.9*Solution_State.lambda)*dx;
+        X-= (Solution_State.lambda*dx);
+        dx.writetofile("dx.txt");
+        X.writetofile("X_after.txt");
         Res = Residual(X,dt,true);
 
         CVector_arma Res_s = Residual(X_s,dt,true);
@@ -362,6 +370,11 @@ bool Grid::OneStepSolve(const double &dt)
             SetStateVariable(X0);
             return false;
         }
+    }
+    if (X.min() < 0)
+    {
+        SetStateVariable(X0);
+        return false;
     }
     Solution_State.err = err;
     return true;

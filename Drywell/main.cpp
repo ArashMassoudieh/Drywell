@@ -10,11 +10,11 @@ using namespace std;
 
 int main()
 {
-    string Results_Folder = "/home/arash/Projects/Drywell_Result";
+    string Results_Folder = "F:/Projects/Drywell_Result";
     enum class _mode {homogeneous, heterogeneous};
     _mode mode = _mode::heterogeneous;
-    int nz=10;
-    int nr=10;
+    int nz=3;
+    int nr=3;
     PropertyGenerator P(nz);
     P.correlation_length_scale = 1;
     P.dx = 0.2;

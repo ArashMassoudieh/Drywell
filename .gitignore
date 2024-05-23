@@ -80,3 +80,5 @@ DryWellConsol/.vs/DryWellConsolFixed/v17/
 DryWellConsol/x64/Release/
 
 lapack-blas_lib_win64.zip
+
+*.txt

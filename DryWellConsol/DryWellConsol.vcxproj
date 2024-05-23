@@ -145,8 +145,7 @@
     </Link>
     <PostBuildEvent>
       <Command>copy "..\..\Armadillo\libs\lapack-blas_lib_win64\*.dll" "$(TargetDir)"
-copy "..\..\VTK-9.2.0\bin\*.dll" "$(TargetDir)"
-</Command>
+copy "..\..\VTK-9.2.0\bin\*.dll" "$(TargetDir)"</Command>
       <Message>copying</Message>
     </PostBuildEvent>
     <PreLinkEvent>
@@ -173,8 +172,7 @@ copy "..\..\VTK-9.2.0\bin\*.dll" "$(TargetDir)"
     </Link>
     <PostBuildEvent>
       <Command>copy "..\..\Armadillo\libs\lapack-blas_lib_win64\*.dll" "$(TargetDir)"
-copy "..\..\VTK-9.2.0\bin\*.dll" "$(TargetDir)"
-</Command>
+copy "..\..\VTK-9.2.0\bin\*.dll" "$(TargetDir)"</Command>
       <Message>copying</Message>
     </PostBuildEvent>
     <PreLinkEvent>

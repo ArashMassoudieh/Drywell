@@ -201,7 +201,7 @@ double Cell::H(_time t) const
 {
     double Se = (Theta(t)-quants.theta_r)/(quants.theta_s-quants.theta_r);
     double H;
-    H = -1.0/quants.alpha*pow(pow(max(min(Se,0.999),0.001),-quants.n/(quants.n-1))-1,1/quants.n);
+    H = -1.0/quants.alpha*pow(pow(max(min(Se,0.999),1e-6),-quants.n/(quants.n-1))-1,1/quants.n);
     if (Se>0.999)
        H += (Se-0.999)/quants.epsilon;
 

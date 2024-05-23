@@ -317,7 +317,7 @@ bool Grid::OneStepSolve(const double &dt)
     Solution_State.number_of_iterations = 0;
     int count_error_expanding = 0;
 
-    while (err/(err_0+dt)>1e-3 && err*sqrt(dt)>1e-6)
+    while (err/(err_0+dt)>1e-3)
     {
         CMatrix_arma J = Jacobian(X,dt);
         CVector_arma dx = Res/J;
@@ -338,6 +338,7 @@ bool Grid::OneStepSolve(const double &dt)
             return false;
         }
     }
+    Solution_State.err = err;
     return true;
 }
 
@@ -378,7 +379,7 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
         CVector_arma X = GetStateVariable(_time::current);
         SetStateVariable(X,_time::past);
         Outflow.append(Solution_State.t,CalcOutFlow());
-        cout<<Solution_State.t<<endl;
+        cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<endl;
     }
     return true;
 }

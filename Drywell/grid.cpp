@@ -328,37 +328,45 @@ bool Grid::OneStepSolve(const double &dt)
     Solution_State.number_of_iterations = 0;
     int count_error_expanding = 0;
 
-    while (err/(err_0+dt)>1e-3 || err>1e-6)
+    while (err/(err_0+dt)*0>1e-3 || err>1e-6)
     {
         CMatrix_arma J = Jacobian(X,dt);
+        //J.ScaleDiagonal(1/Solution_State.lambda);
+        //CMatrix_arma J1 = J;
+        //J1.ScaleDiagonal(1/Solution_State.lambda);
         CVector_arma dx = Res/J;
+        //CVector_arma dx1 = Res/J1;
         if (dx.num != X.num)
         {
             Solution_State.err = err; 
             return false;
         }
-        CVector_arma X_s = X-(Solution_State.lambda_reduction_factor*Solution_State.lambda)*dx;
-        X-= (Solution_State.lambda*dx);
+
+        //CVector_arma X_s = X-dx1;
+        X-= dx;
         Res = Residual(X,dt,true);
 
-        CVector_arma Res_s = Residual(X_s,dt,true);
-        Res.writetofile("Res.txt");
+        //CVector_arma Res_s = Residual(X_s,dt,true);
 
         double err1=Res.norm2();
-        double err_s=Res_s.norm2();
+        //double err_s=Res_s.norm2();
 
-        if (err_s<err1)
+        /*if (err_s<err1)
         {   Solution_State.lambda = max(Solution_State.lambda*Solution_State.lambda_reduction_factor,0.1);
             X = X_s;
             err1 = err_s;
-        }
-        else
-            Solution_State.lambda = min(Solution_State.lambda/Solution_State.lambda_reduction_factor,3.0);
-
+        }*/
         if (err1>err)
         {
+            Solution_State.lambda = max(Solution_State.lambda*Solution_State.lambda_reduction_factor,0.1);
             count_error_expanding++;
         }
+        //else if (err>err_0)
+        //{
+        //    Solution_State.lambda = max(Solution_State.lambda*Solution_State.lambda_reduction_factor,0.1);
+        //}
+        //else
+        //    Solution_State.lambda = min(Solution_State.lambda/Solution_State.lambda_reduction_factor,3.0);
         err=err1;
 
         Solution_State.number_of_iterations ++;

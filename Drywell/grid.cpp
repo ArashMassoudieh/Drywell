@@ -194,7 +194,7 @@ double Grid::K(int i,int j,const edge &ej)
     double m2 = 1.0-1.0/neighbour->getValue(prop::n);
     double K1 = pow(Se1,0.5)*cells[i][j].getValue(prop::Ks)*pow(1-pow(1-pow(Se1,1.0/m1),m1),2);
     double K2 = pow(Se2,0.5)*neighbour->getValue(prop::Ks)*pow(1-pow(1-pow(Se1,1.0/m2),m2),2);
-    return max(K1,K2);
+    return min(K1,K2);
 
 }
 

@@ -10,8 +10,8 @@ using namespace std;
 
 int main()
 {
-    string Results_Folder = "/home/arash/Projects/Drywell_Result";
-    //string Results_Folder = "F:/Projects/Drywell_Result";
+    //string Results_Folder = "/home/arash/Projects/Drywell_Result";
+    string Results_Folder = "F:/Projects/Drywell_Result";
     enum class _mode {homogeneous, heterogeneous};
     _mode mode = _mode::heterogeneous;
     int nz=20;

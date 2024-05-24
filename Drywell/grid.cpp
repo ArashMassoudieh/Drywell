@@ -391,6 +391,8 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
         if (!OneStepSolve(Solution_State.dt))
         {
             Solution_State.dt*=Solution_State.dt_scale_factor_fail;
+            if (Solution_State.dt<Solution_State.min_time_step)
+                return false;
         }
         else
         {
@@ -407,6 +409,8 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
             if (Solution_State.number_of_iterations>Solution_State.NI_max && Solution_State.dt>1e-5)
             {
                 Solution_State.dt*=Solution_State.dt_scale_factor;
+                if (Solution_State.dt<Solution_State.min_time_step)
+                    return false;
             }
             else if (Solution_State.number_of_iterations<Solution_State.NI_min)
             {

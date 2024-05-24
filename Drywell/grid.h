@@ -29,6 +29,7 @@ struct _solution_state
     double err;
     double lambda=1;
     double lambda_reduction_factor=0.9;
+    double min_time_step = 1e-7;
 };
 
 class Grid

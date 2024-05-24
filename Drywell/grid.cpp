@@ -358,7 +358,7 @@ bool Grid::OneStepSolve(const double &dt)
         }*/
         if (err1>err)
         {
-            Solution_State.lambda = max(Solution_State.lambda*Solution_State.lambda_reduction_factor,0.1);
+            //Solution_State.lambda = max(Solution_State.lambda*Solution_State.lambda_reduction_factor,0.1);
             count_error_expanding++;
         }
         //else if (err>err_0)

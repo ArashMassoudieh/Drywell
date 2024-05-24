@@ -28,6 +28,7 @@ struct _solution_state
     int max_iterations = 100;
     double err;
     double lambda=1;
+    double lambda_reduction_factor=0.9;
 };
 
 class Grid

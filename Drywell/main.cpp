@@ -10,11 +10,11 @@ using namespace std;
 
 int main()
 {
-    string Results_Folder = "F:/Projects/Drywell_Result";
+    string Results_Folder = "/home/arash/Projects/Drywell_Result";
     enum class _mode {homogeneous, heterogeneous};
     _mode mode = _mode::heterogeneous;
-    int nz=3;
-    int nr=3;
+    int nz=10;
+    int nr=10;
     PropertyGenerator P(nz);
     P.correlation_length_scale = 1;
     P.dx = 0.2;
@@ -90,7 +90,7 @@ cout<<"7.3"<<endl;
 cout<<"7.4"<<endl;
     G.SetProp("r_w","0.025");
 cout<<"8"<<endl;
-    G.Solve(0,0.1,10,0.1);
+    G.Solve(0,0.1,20,0.1);
 cout<<"9"<<endl;
     G.ExtractMoisture(1,0).writefile(Results_Folder + "/Heterogeneous/Test/moist_well.csv");
     //G.ExtractMoisture(9,5).writefile("/home/arash/Projects/Drywell_Results/Test/moist_10_5.csv");

@@ -1,6 +1,7 @@
 #include "cell.h"
 #include <cmath>
-
+#include <iostream>
+using namespace std;
 Cell::Cell()
 {
     InitiateQuans();
@@ -211,6 +212,9 @@ double Cell::H(_time t, bool calc) const
 {
     if (calc)
     {   double Se = (Theta(t)-quants.theta_r)/(quants.theta_s-quants.theta_r);
+        //if (Se<0)
+        //    cout<<"Se<0"<<endl;
+
         double H;
         H = -1.0/quants.alpha*pow(pow(max(min(Se,0.999),1e-6),-quants.n/(quants.n-1))-1,1/quants.n);
         if (Se>0.999)

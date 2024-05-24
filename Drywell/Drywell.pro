@@ -12,8 +12,6 @@ CONFIG += use_VTK
 CONFIG += Arash
 DEFINES += Arash
 
-DEFINES += VALGRIND
-
 Arash {
     #VTKHEADERPATH = /home/arash/Projects/VTK-9.2.0/include/vtk-9.2
     #VTKBUILDPATH = /home/arash/Projects/VTK-9.2.0/lib

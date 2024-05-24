@@ -10,7 +10,8 @@ using namespace std;
 
 int main()
 {
-    string Results_Folder = "/home/arash/Projects/Drywell_Result";
+    //string Results_Folder = "/home/arash/Projects/Drywell_Result";
+    string Results_Folder = "F:/Projects/Drywell_Result";
     enum class _mode {homogeneous, heterogeneous};
     _mode mode = _mode::heterogeneous;
     int nz=10;
@@ -19,7 +20,7 @@ int main()
     P.correlation_length_scale = 1;
     P.dx = 0.2;
     P.assign_K_gauss(); // Assigns normal scores for K_sat
-    P.Normalize_Ksat_normal_scores(0,0.1);
+    P.Normalize_Ksat_normal_scores(0,1);
     P.write("K_sat_normal_score", Results_Folder + "/Heterogeneous/Test/K_sat_score_1.txt");
     //P.Normalize_Ksat_normal_scores(1,0.1);
     //P.write("K_sat_normal_score",Results_Folder + "/Heterogeneous/Test/K_sat_score_2.txt");

@@ -1,23 +1,35 @@
 #include "propertygenerator.h"
 #include "gsl/gsl_randist.h"
 #include "gsl/gsl_cdf.h"
-#include "sys/time.h"
+#ifndef  _WINDOWS
+#include <sys/time.h>
+#endif // ! _WINDOWS
+
 
 PropertyGenerator::PropertyGenerator():vector<Propfull>()
 {
+#ifndef _WINDOWS
     struct timeval tv;
-    gettimeofday(&tv,0);
+    gettimeofday(&tv, 0);
     unsigned long mySeed = tv.tv_sec + tv.tv_usec;
-    gsl_rng_set(r, mySeed);
+#else
+    long int mySeed = static_cast<long int>(time(NULL));
+#endif // !_WINDOWS
+gsl_rng_set(r, mySeed);
 }
 
 
 PropertyGenerator::PropertyGenerator(unsigned int n):vector<Propfull>(n)
 {
+#ifndef _WINDOWS
     struct timeval tv;
-    gettimeofday(&tv,0);
+    gettimeofday(&tv, 0);
     unsigned long mySeed = tv.tv_sec + tv.tv_usec;
+#else
+    long int mySeed = static_cast<long int>(time(NULL));
+#endif // !_WINDOWS
     gsl_rng_set(r, mySeed);
+
 }
 
 

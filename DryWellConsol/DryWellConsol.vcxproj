@@ -133,7 +133,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;use_VTK;_arma;ARMA_USE_LAPACK;ARMA_USE_BLAS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;use_VTK;_arma;ARMA_USE_LAPACK;ARMA_USE_BLAS;windows;_WINDOWS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\VTK-9.2.0\include\vtk-9.2;..\..\Utilities;..\Drywell;..\armadillo-header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -158,7 +158,7 @@ copy "..\..\VTK-9.2.0\bin\*.dll" "$(TargetDir)"</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;use_VTK;_arma;_arma;ARMA_USE_LAPACK;ARMA_USE_BLAS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;use_VTK;_arma;_arma;ARMA_USE_LAPACK;ARMA_USE_BLAS;windows;_WINDOWS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\..\VTK-9.2.0\include\vtk-9.2;..\..\Utilities;..\Drywell;..\armadillo-header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>

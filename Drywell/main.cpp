@@ -19,10 +19,10 @@ int main()
     P.correlation_length_scale = 1;
     P.dx = 0.2;
     P.assign_K_gauss(); // Assigns normal scores for K_sat
-    P.Normalize_Ksat_normal_scores(0,1);
+    P.Normalize_Ksat_normal_scores(0,0.1);
     P.write("K_sat_normal_score", Results_Folder + "/Heterogeneous/Test/K_sat_score_1.txt");
-    P.Normalize_Ksat_normal_scores(1,0.1);
-    P.write("K_sat_normal_score",Results_Folder + "/Heterogeneous/Test/K_sat_score_2.txt");
+    //P.Normalize_Ksat_normal_scores(1,0.1);
+    //P.write("K_sat_normal_score",Results_Folder + "/Heterogeneous/Test/K_sat_score_2.txt");
 cout<<"1"<<endl;
     CTimeSeries<double> K_sat_marginal_CDF(Results_Folder + "/Heterogeneous/K_sat_Marginal_Distribution.csv"); // Loading Cummulative Distributions
     CTimeSeries<double> alpha_marginal_CDF(Results_Folder + "/Heterogeneous/alpha_Marginal_Distribution.csv");

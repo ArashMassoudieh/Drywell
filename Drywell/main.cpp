@@ -1,3 +1,5 @@
+
+
 #include <iostream>
 #include "grid.h"
 #include "propertygenerator.h"
@@ -80,6 +82,7 @@ int main()
     {
         QTime start_time = QTime::currentTime();
         cout<<"Start time = " + start_time.toString().toStdString();
+        string base_folder = "/home/arash/Projects/Drywell_Result/Homogeneous/";
         string Results_Folder = "/home/arash/Projects/Drywell_Result/Heterogeneous/" + it->folder.toStdString();
         //string Results_Folder = "F:/Projects/Drywell_Result";
         QDir dir("/home/arash/Projects/Drywell_Result/Heterogeneous/");

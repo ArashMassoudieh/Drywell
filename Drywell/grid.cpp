@@ -449,7 +449,7 @@ bool Grid::OneStepSolveLM(const double &dt)
 
         CMatrix_arma J = Jacobian(X,dt);
         CMatrix_arma JJT = J*Transpose(J);
-        CMatrix_arma K = (JJT + Solution_State.lambda*CMatrix_arma::Identity(JJT.getnumcols()));
+        CMatrix_arma K = (JJT);
         CVector_arma dx = (Transpose(J)*Res)/K;
 
         if (dx.num != X.num)

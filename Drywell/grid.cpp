@@ -62,10 +62,10 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt, bool resets
         X_old = GetStateVariable();
     SetStateVariable(X);
     UpdateH();
-    Res[nz*nr] = (pi*pow(r_w+dr/2,2)*(well_H<=0?1:0)+alpha*beta*pow(max(well_H,0.0),beta-1))*(well_H-well_H_old)/dt - inflow.interpol(Solution_State.t);
+    Res[nz*nr] = (pi*pow(r_w+dr/2,2)*(well_H<=0?1:0)+alpha*beta*pow(std::max(well_H,0.0),beta-1))*(well_H-well_H_old)/dt - inflow.interpol(Solution_State.t);
     for (unsigned int i=0; i<nz; i++)
     {   double lower_el = -dz*(i+1);
-        double interface_length = max(min(well_H - lower_el,dz),0.0);
+        double interface_length = std::max(std::min(well_H - lower_el,dz),0.0);
         for (unsigned int j=0; j<nr; j++)
         {
             double r = (j+0.5)*dr+r_w;
@@ -85,8 +85,8 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt, bool resets
             else if (cells[i][j].Boundary.type==boundaryType::fixedpressure)
             {
                 if (interface_length>0)
-                {   Res[j+nr*i] = cells[i][j].H(_time::current,false) - max(well_H+(i+1)*dz,0.0)*(interface_length/dz);
-                    Res[nz*nr]+=2*interface_length*pi*(r_w+dr/2)*K(i,j,edge::right)*(max(well_H+(i+1)*dz,0.0)-Neighbour(i,j,edge::right)->H(_time::current,false));
+                {   Res[j+nr*i] = cells[i][j].H(_time::current,false) - std::max(well_H+(i+1)*dz,0.0)*(interface_length/dz);
+                    Res[nz*nr]+=2*interface_length*pi*(r_w+dr/2)*K(i,j,edge::right)*(std::max(well_H+(i+1)*dz,0.0)-Neighbour(i,j,edge::right)->H(_time::current,false));
                 }
                 else
                 {
@@ -154,7 +154,7 @@ void Grid::SetStateVariable(const CVector_arma &X,const _time &t)
         {
             if (cells[i][j].Boundary.type == boundaryType::fixedpressure)
             {
-                cells[i][j].Boundary.value = min(X[nz*nr]-i*dz,0.0);
+                cells[i][j].Boundary.value = std::min(X[nz*nr]-i*dz,0.0);
             }
             cells[i][j].SetTheta(X[j+nr*i],t);
 
@@ -187,21 +187,21 @@ double Grid::K(int i,int j,const edge &ej)
     Cell* neighbour = Neighbour(i,j,ej);
     if (!neighbour)
         neighbour = &cells[i][j];
-    double Se1 = min(max((cells[i][j].Theta(_time::current) - cells[i][j].getValue(prop::theta_r)) / (cells[i][j].getValue(prop::theta_s) - cells[i][j].getValue(prop::theta_r)),1e-6),1.0);
-    double Se2 = min(max((neighbour->Theta(_time::current) - neighbour->getValue(prop::theta_r)) / (neighbour->getValue(prop::theta_s) - neighbour->getValue(prop::theta_r)),1e-6),1.0);
+    double Se1 = std::min(std::max((cells[i][j].Theta(_time::current) - cells[i][j].getValue(prop::theta_r)) / (cells[i][j].getValue(prop::theta_s) - cells[i][j].getValue(prop::theta_r)),1e-6),1.0);
+    double Se2 = std::min(std::max((neighbour->Theta(_time::current) - neighbour->getValue(prop::theta_r)) / (neighbour->getValue(prop::theta_s) - neighbour->getValue(prop::theta_r)),1e-6),1.0);
 
     double m1 = 1.0-1.0/cells[i][j].getValue(prop::n);
     double m2 = 1.0-1.0/neighbour->getValue(prop::n);
     double K1 = pow(Se1,0.5)*cells[i][j].getValue(prop::Ks)*pow(1-pow(1-pow(Se1,1.0/m1),m1),2);
     double K2 = pow(Se2,0.5)*neighbour->getValue(prop::Ks)*pow(1-pow(1-pow(Se1,1.0/m2),m2),2);
-    return max(K1,K2);
+    return std::max(K1,K2);
 
 }
 
 double Grid::invC(int i,int j,const edge &ej)
 {
     double C;
-    double Se = min(max((max(cells[i][j].Theta(_time::current),Neighbour(i,j,ej)->Theta(_time::current))-getVal(i,j,prop::theta_r,ej))/(getVal(i,j,prop::theta_s,ej)-getVal(i,j,prop::theta_s,ej)),1e-6),0.99999);
+    double Se = std::min(std::max((std::max(cells[i][j].Theta(_time::current),Neighbour(i,j,ej)->Theta(_time::current))-getVal(i,j,prop::theta_r,ej))/(getVal(i,j,prop::theta_s,ej)-getVal(i,j,prop::theta_s,ej)),1e-6),0.99999);
     double m = 1.0-1.0/getVal(i,j,prop::n,ej);
     if (getVal(i,j,prop::theta,ej)>getVal(i,j,prop::theta_s,ej))
         C = 1.0/getVal(i,j,prop::epsilon,ej);
@@ -210,7 +210,7 @@ double Grid::invC(int i,int j,const edge &ej)
     return C;
 }
 
-double Grid::getVal(int i, int j, const string &val, const edge &ej)
+double Grid::getVal(int i, int j, const std::string &val, const edge &ej)
 {
     Cell* neighbour = Neighbour(i,j,ej);
     if (!neighbour)
@@ -538,18 +538,18 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
             }
             else if (Solution_State.number_of_iterations<Solution_State.NI_min)
             {
-                Solution_State.dt = min(Solution_State.dt/Solution_State.dt_scale_factor,Solution_State.max_time_step);
+                Solution_State.dt = std::min(Solution_State.dt/Solution_State.dt_scale_factor,Solution_State.max_time_step);
             }
         }
         CVector_arma X = GetStateVariable(_time::current);
         SetStateVariable(X,_time::past);
         Outflow.append(Solution_State.t,CalcOutFlow());
-        cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<", Lamda = "<<Solution_State.lambda <<endl;
+        cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<", Lamda = "<<Solution_State.lambda <<std::endl;
     }
     return true;
 }
 
-bool Grid::SetProp(const string &propname, const string &value)
+bool Grid::SetProp(const std::string &propname, const std::string &value)
 {
     if (propname == "well_H")
     {
@@ -565,10 +565,10 @@ bool Grid::SetProp(const string &propname, const string &value)
     {
         r_w = aquiutils::atof(value);
         for (unsigned int i=0; i<nz; i++)
-        {   cout<<i<<endl;
+        {   cout<<i<<std::endl;
             for (unsigned int j=0; j<nr; j++)
             {
-                cout<<j<<","<<dr<<endl;
+                cout<<j<<","<<dr<<std::endl;
                 cells[i][j].setr((j+0.5)*dr+r_w);
                 cells[i][j].setz(-(i+0.5)*dz);
             }
@@ -619,7 +619,7 @@ bool Grid::AssignProperty(PropertyGenerator *prop)
 }
 
 #ifdef use_VTK
-void Grid::write_to_vtp(const string &name) const
+void Grid::write_to_vtp(const std::string &name) const
 {
     vtkSmartPointer<vtkPoints> points_3 =
             vtkSmartPointer<vtkPoints>::New();
@@ -749,7 +749,7 @@ void Grid::write_to_vtp(const string &name) const
 }
 
 
-void Grid::write_to_vtp(const string &name,const CMatrix &res, const string &quanname, const double &scale) const
+void Grid::write_to_vtp(const std::string &name,const CMatrix &res, const std::string &quanname, const double &scale) const
 {
     vtkSmartPointer<vtkPoints> points_3 =
             vtkSmartPointer<vtkPoints>::New();
@@ -879,16 +879,16 @@ void Grid::write_to_vtp(const string &name,const CMatrix &res, const string &qua
 }
 #endif
 
-void Grid::WriteResults(const string &filename)
+void Grid::WriteResults(const std::string &filename)
 {
     for (unsigned k=0; k<results.size(); k++)
     {
-        string name = aquiutils::split(filename,'.')[0]+"_"+aquiutils::numbertostring(k+1,3)+".vtp";
+        std::string name = aquiutils::split(filename,'.')[0]+"_"+aquiutils::numbertostring(k+1,3)+".vtp";
         write_to_vtp(name,results[k],"Moisture Content",1);
     }
 }
 
-void Grid::WriteResults(const string &quan, const string &filename)
+void Grid::WriteResults(const std::string &quan, const std::string &filename)
 {
     for (unsigned k=0; k<results.size(); k++)
     {
@@ -951,7 +951,7 @@ CMatrix Grid::Se()
     return out;
 }
 
-CMatrix Grid::QuanMatrix(const string &quan)
+CMatrix Grid::QuanMatrix(const std::string &quan)
 {
     CMatrix out(nz,nr);
     for (unsigned int i = 0; i < cells.size(); i++)
@@ -962,26 +962,26 @@ CMatrix Grid::QuanMatrix(const string &quan)
     return out;
 }
 
-double Grid::Max(const string &quan)
+double Grid::Max(const std::string &quan)
 {
 
     double out = -1e12;
     for (unsigned int i = 0; i < cells.size(); i++)
         for (unsigned int j = 0; j < cells[i].size(); j++)
         {
-            out = max(cells[i][j].getValue(quan),out);
+            out = std::max(cells[i][j].getValue(quan),out);
         }
     return out;
 }
 
-double Grid::Min(const string &quan)
+double Grid::Min(const std::string &quan)
 {
 
     double out = 1e12;
     for (unsigned int i = 0; i < cells.size(); i++)
         for (unsigned int j = 0; j < cells[i].size(); j++)
         {
-            out = min(cells[i][j].getValue(quan),out);
+            out = std::min(cells[i][j].getValue(quan),out);
         }
     return out;
 }

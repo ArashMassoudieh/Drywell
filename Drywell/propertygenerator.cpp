@@ -6,7 +6,7 @@
 #endif // ! _WINDOWS
 
 
-PropertyGenerator::PropertyGenerator():vector<Propfull>()
+PropertyGenerator::PropertyGenerator():std::vector<Propfull>()
 {
 #ifndef _WINDOWS
     struct timeval tv;
@@ -19,7 +19,7 @@ gsl_rng_set(r, mySeed);
 }
 
 
-PropertyGenerator::PropertyGenerator(unsigned int n):vector<Propfull>(n)
+PropertyGenerator::PropertyGenerator(unsigned int n):std::vector<Propfull>(n)
 {
 #ifndef _WINDOWS
     struct timeval tv;
@@ -37,7 +37,7 @@ correl_mat_vec PropertyGenerator::get_correll_matrix_vec(int i)
 {
     correl_mat_vec Correl_Matrix_Vector;
     int num_determined = GetNumberOfPointsDetermined();
-    vector<int> determined = Determined();
+    std::vector<int> determined = Determined();
 #ifdef _arma
     Correl_Matrix_Vector.M_22 = CMatrix_arma(num_determined);
     Correl_Matrix_Vector.V_21 = CVector_arma(num_determined);
@@ -115,9 +115,9 @@ unsigned int PropertyGenerator::GetNumberOfPointsDetermined()
     return num_determined;
 }
 
-vector<int> PropertyGenerator::Determined()
+std::vector<int> PropertyGenerator::Determined()
 {
-    vector<int> determined;
+    std::vector<int> determined;
     for (unsigned int i=0; i<size(); i++)
         if (at(i).k_det)
             determined.push_back(i);
@@ -135,7 +135,7 @@ void PropertyGenerator::Normalize_Ksat_normal_scores(const double &new_mean, con
     }
 }
 
-double PropertyGenerator::mean(const string &quan, bool log) const
+double PropertyGenerator::mean(const std::string &quan, bool log) const
 {
     CVector V(vals(quan));
     if (!log)
@@ -144,7 +144,7 @@ double PropertyGenerator::mean(const string &quan, bool log) const
         return exp(V.Log().mean());
 }
 
-double PropertyGenerator::std(const string &quan, bool log) const
+double PropertyGenerator::std(const std::string &quan, bool log) const
 {
     CVector V(vals(quan));
     if (!log)
@@ -153,7 +153,7 @@ double PropertyGenerator::std(const string &quan, bool log) const
         return V.Log().stdev();
 }
 
-void PropertyGenerator::Normalize(const string &quan,const double &denominator)
+void PropertyGenerator::Normalize(const std::string &quan,const double &denominator)
 {
     for (int i=0; i<size(); i++)
     {
@@ -161,7 +161,7 @@ void PropertyGenerator::Normalize(const string &quan,const double &denominator)
     }
 }
 
-bool PropertyGenerator::write(const string &quan, const string &filename) const
+bool PropertyGenerator::write(const std::string &quan, const std::string &filename) const
 {
     CVector V(vals(quan));
     V.writetofile(filename);
@@ -169,9 +169,9 @@ bool PropertyGenerator::write(const string &quan, const string &filename) const
 }
 
 
-vector<double> PropertyGenerator::vals(const string &quan) const
+std::vector<double> PropertyGenerator::vals(const std::string &quan) const
 {
-    vector<double> out;
+    std::vector<double> out;
     for (unsigned int i=0; i<size(); i++)
     {
         if (quan == "K_sat_normal_score")
@@ -192,7 +192,7 @@ vector<double> PropertyGenerator::vals(const string &quan) const
     return out;
 }
 
-double PropertyGenerator::val(const string &quan, int i) const
+double PropertyGenerator::val(const std::string &quan, int i) const
 {
 
     if (quan == "K_sat_normal_score")
@@ -213,7 +213,7 @@ double PropertyGenerator::val(const string &quan, int i) const
 
 }
 
-bool PropertyGenerator::SetVal(const string &quan, int i, const double &value)
+bool PropertyGenerator::SetVal(const std::string &quan, int i, const double &value)
 {
 
     if (quan == "K_sat_normal_score")
@@ -236,11 +236,11 @@ bool PropertyGenerator::SetVal(const string &quan, int i, const double &value)
 
 }
 
-void PropertyGenerator::SetMarginalDistribution(const string &quan, const CTimeSeries<double> series)
+void PropertyGenerator::SetMarginalDistribution(const std::string &quan, const CTimeSeries<double> series)
 {
     marginal_distributions[quan] = series;
 }
-CTimeSeries<double> PropertyGenerator::MarginalDistribution(const string &quan)
+CTimeSeries<double> PropertyGenerator::MarginalDistribution(const std::string &quan)
 {
     if (marginal_distributions.count(quan)==1)
     {
@@ -250,16 +250,16 @@ CTimeSeries<double> PropertyGenerator::MarginalDistribution(const string &quan)
         return CTimeSeries<double>();
 }
 
-void PropertyGenerator::PopulateRealValue(const string &quan, const string &quanfrom)
+void PropertyGenerator::PopulateRealValue(const std::string &quan, const std::string &quanfrom)
 {
-    cout<<"PopulateRealValue-1"<<endl;
+    cout<<"PopulateRealValue-1"<<std::endl;
     CTimeSeries<double> LogTransformed = marginal_distributions[quan].LogTransformX();
-    cout<<"LogTransformed"<<endl;
+    cout<<"LogTransformed"<<std::endl;
     CTimeSeries<double> inverseCDF = LogTransformed.inverse_cumulative_uniform(100);
-    cout<<"PopulateRealValue-2"<<endl;
+    cout<<"PopulateRealValue-2"<<std::endl;
     for (unsigned int i=0; i<size(); i++)
     {
-        cout<<i<<endl;
+        cout<<i<<std::endl;
         double score = gsl_cdf_ugaussian_P(val(quanfrom,i));
         double value = exp(inverseCDF.interpol(score));
         SetVal(quan,i,value);

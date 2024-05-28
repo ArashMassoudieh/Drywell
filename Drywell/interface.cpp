@@ -5,7 +5,7 @@ Interface::Interface()
 
 }
 
-double Interface::getValue(const string quan) const
+double Interface::getValue(const std::string quan) const
 {
     if (quants.count(quan)>0)
         return quants.at(quan);

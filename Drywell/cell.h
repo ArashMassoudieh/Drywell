@@ -4,7 +4,7 @@
 #include <map>
 #include <string>
 
-using namespace std;
+//using namespace std;
 
 enum class edge {left, right, up, down};
 enum class _time {past, current, both};
@@ -43,9 +43,9 @@ public:
     void InitiateQuans();
     void SetTheta(const double &val, const _time &t);
     double Theta(const _time &t) const;
-    double getValue(const string &quan) const;
+    double getValue(const std::string &quan) const;
     double getValue(prop property) const;
-    void SetValue(const string &quan, const double &value);
+    void SetValue(const std::string &quan, const double &value);
     void SetValue(prop property, const double& value);
     boundary Boundary;
     void SetBoundary(boundaryType typ, edge boundaryEdge, const double &value = 0);
@@ -63,7 +63,7 @@ public:
     void setz(const double &val) {center_z = val;}
     void setr(const double &val) {center_r=val;}
 private:
-    //map<string,double> quants;
+    //std::map<string,double> quants;
     _quantypes quants;
     Grid *parent;
     double qOut = 0;

@@ -1,7 +1,7 @@
 #include "cell.h"
 #include <cmath>
 #include <iostream>
-using namespace std;
+//using namespace std;
 Cell::Cell()
 {
     InitiateQuans();
@@ -51,7 +51,7 @@ Cell& Cell::operator=(const Cell &RHS)
     return *this;
 }
 
-double Cell::getValue(const string &quan) const
+double Cell::getValue(const std::string &quan) const
 {
     /*if (quants.count(quan)>0)
         return quants.at(quan);
@@ -81,7 +81,7 @@ double Cell::getValue(const string &quan) const
         return 0;
 }
 
-void Cell::SetValue(const string &quan, const double &value)
+void Cell::SetValue(const std::string &quan, const double &value)
 {
     /*if (quants.count(quan)>0)
         quants.at(quan) = value;
@@ -213,10 +213,10 @@ double Cell::H(_time t, bool calc) const
     if (calc)
     {   double Se = (Theta(t)-quants.theta_r)/(quants.theta_s-quants.theta_r);
         //if (Se<0)
-        //    cout<<"Se<0"<<endl;
+        //    cout<<"Se<0"<<std::endl;
 
         double H;
-        H = -1.0/quants.alpha*pow(pow(max(min(Se,0.999),1e-6),-quants.n/(quants.n-1))-1,1/quants.n);
+        H = -1.0/quants.alpha*pow(std::pow(std::max(std::min(Se,0.999),1e-6),-quants.n/(quants.n-1))-1,1/quants.n);
         if (Se>0.999)
            H += (Se-0.999)/quants.epsilon;
 

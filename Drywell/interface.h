@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 
-using namespace std;
+//using namespace std;
 class Grid;
 
 class Interface
@@ -14,9 +14,9 @@ public:
     ~Interface();
     Interface(const Interface &RHS);
     Interface& operator=(const Interface &RHS);
-    double getValue(const string quan) const;
+    double getValue(const std::string quan) const;
 private:
-    map<string,double> quants;
+    std::map<std::string,double> quants;
     Grid *parent;
 };
 

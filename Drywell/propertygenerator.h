@@ -7,7 +7,7 @@
 #include <gsl/gsl_rng.h>
 #include "BTC.h"
 
-using namespace std;
+//using namespace std;
 
 struct correl_mat_vec
 {
@@ -44,7 +44,7 @@ struct Propfull
 
 enum class params {K_sat, alpha, n};
 
-class PropertyGenerator: public vector<Propfull>
+class PropertyGenerator: public std::vector<Propfull>
 {
 public:
     PropertyGenerator();
@@ -52,30 +52,30 @@ public:
     double dx;
     double correlation_length_scale;
     void assign_K_gauss();
-    bool write(const string &quan, const string &filename) const;
+    bool write(const std::string &quan, const std::string &filename) const;
     void Normalize_Ksat_normal_scores(const double &mean, const double &std);
-    double mean(const string &quan, bool log=false) const;
-    double std(const string &quan, bool log=false) const;
-    vector<double> vals(const string &quan) const;
-    void SetMarginalDistribution(const string &quan, const CTimeSeries<double> series);
-    CTimeSeries<double> MarginalDistribution(const string &quan);
-    void PopulateRealValue(const string &quan, const string &quanfrom);
-    double val(const string &quan, int i) const;
-    bool SetVal(const string &quan, int i, const double &value);
+    double mean(const std::string &quan, bool log=false) const;
+    double std(const std::string &quan, bool log=false) const;
+    std::vector<double> vals(const std::string &quan) const;
+    void SetMarginalDistribution(const std::string &quan, const CTimeSeries<double> series);
+    CTimeSeries<double> MarginalDistribution(const std::string &quan);
+    void PopulateRealValue(const std::string &quan, const std::string &quanfrom);
+    double val(const std::string &quan, int i) const;
+    bool SetVal(const std::string &quan, int i, const double &value);
     void SetCorr(params, const double &value);
     void Populate_Alpha_n_normal_scores(params p);
-    void Normalize(const string &quan, const double &denominator);
+    void Normalize(const std::string &quan, const double &denominator);
 private:
     CMatrix K_alpha_n_corr_matrix;
     double K_sat_normal_score_mean;
     double K_sat_normal_score_std;
     correl_mat_vec get_correll_matrix_vec(int i);
-    vector<ival> get_top_n(const vector<ival> &vec);
-    vector<ival> get_closest_K_dets(unsigned int i);
+    std::vector<ival> get_top_n(const std::vector<ival> &vec);
+    std::vector<ival> get_closest_K_dets(unsigned int i);
     void assign_K_gauss(unsigned int i);
     unsigned int GetNumberOfPointsDetermined();
-    vector<int> Determined();
-    map<string,CTimeSeries<double>> marginal_distributions;
+    std::vector<int> Determined();
+    std::map<std::string,CTimeSeries<double>> marginal_distributions;
     double K_sat_alpha_correlation = 1;
     double K_sat_n_correlation = 1;
     const gsl_rng_type * T;

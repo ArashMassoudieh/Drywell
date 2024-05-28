@@ -1,0 +1,61 @@
+-IF:/QT/5.15.2/MSVC2019_64/mkspecs/win32-msvc
+-IF:/Projects/Drywell/Drywell
+-IF:/Projects/Utilities
+-IF:/Projects/Drywell/Drywell/include
+-IF:/home/arash/Projects/VTK
+-IF:/home/arash/Projects/VTK/Common/Core
+-IF:/home/arash/Projects/VTK/VTK-build/Common/Core
+-IF:/home/arash/Projects/VTK/Common/Color
+-IF:/home/arash/Projects/VTK/Common/Transforms
+-IF:/home/arash/Projects/VTK/VTK-build/Common/Transforms
+-IF:/home/arash/Projects/VTK/VTK-build/Common/Color
+-IF:/home/arash/Projects/VTK/VTK-build/Common/DataModel
+-IF:/home/arash/Projects/VTK/VTK-build/Utilities/KWIML
+-IF:/home/arash/Projects/VTK/Utilities/KWIML
+-IF:/home/arash/Projects/VTK/Rendering/Core
+-IF:/home/arash/Projects/VTK/VTK-build/Rendering/Core
+-IF:/home/arash/Projects/VTK/VTK-build/Filters/Core
+-IF:/home/arash/Projects/VTK/Charts/Core
+-IF:/home/arash/Projects/VTK/VTK-build/Charts/Core
+-IF:/home/arash/Projects/VTK/VTK-build/Filters/General
+-IF:/home/arash/Projects/VTK/VTK-build/Rendering/Context2D
+-IF:/home/arash/Projects/VTK/Rendering/Context2D
+-IF:/home/arash/Projects/VTK/Common/DataModel
+-IF:/home/arash/Projects/VTK/Common/Math
+-IF:/home/arash/Projects/VTK/Views/Context2D
+-IF:/home/arash/Projects/VTK/VTK-build/Views/Context2D
+-IF:/home/arash/Projects/VTK/VTK-build/Views/Core
+-IF:/home/arash/Projects/VTK/VTK-build/Interaction/Widgets
+-IF:/home/arash/Projects/VTK/Views/Core
+-IF:/home/arash/Projects/VTK/Interaction/Style
+-IF:/home/arash/Projects/VTK/VTK-build/Interaction/Style
+-IF:/home/arash/Projects/VTK/Filters/Modeling
+-IF:/home/arash/Projects/VTK/VTK-build/Filters/Modeling
+-IF:/home/arash/Projects/VTK/Common/ExecutionModel
+-IF:/home/arash/Projects/VTK/VTK-build/Common/ExecutionModel
+-IF:/home/arash/Projects/VTK/Interaction/Widgets
+-IF:/home/arash/Projects/VTK/Filters/Core
+-IF:/home/arash/Projects/VTK/Common/Misc
+-IF:/home/arash/Projects/VTK/VTK-build/Common/Misc
+-IF:/home/arash/Projects/VTK/IO/XML
+-IF:/home/arash/Projects/VTK/VTK-build/IO/XML
+-IF:/home/arash/Projects/VTK/Filters/Sources
+-IF:/home/arash/Projects/VTK/VTK-build/Filters/Sources
+-IF:/home/arash/Projects/VTK/Filters/General
+-IF:/home/arash/Projects/VTK/IO/Image
+-IF:/home/arash/Projects/VTK/VTK-build/IO/Image
+-IF:/home/arash/Projects/VTK/Imaging/Core
+-IF:/home/arash/Projects/VTK/VTK-build/Imaging/Core
+-IF:/home/arash/Projects/VTK/VTK-build/Utilities/KWSys
+-IF:/QT/5.15.2/MSVC2019_64/include
+-IF:/QT/5.15.2/MSVC2019_64/include/QtGui
+-IF:/QT/5.15.2/MSVC2019_64/include/QtANGLE
+-IF:/QT/5.15.2/MSVC2019_64/include/QtCore
+-IF:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.32.31326\ATLMFC\include
+-IF:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.32.31326\include
+-IC:\Program Files (x86)\Windows Kits\NETFXSDK\4.6.1\include\um
+-IC:\Program Files (x86)\Windows Kits\10\include\10.0.22621.0\ucrt
+-IC:\Program Files (x86)\Windows Kits\10\\include\10.0.22621.0\\shared
+-IC:\Program Files (x86)\Windows Kits\10\\include\10.0.22621.0\\um
+-IC:\Program Files (x86)\Windows Kits\10\\include\10.0.22621.0\\winrt
+-IC:\Program Files (x86)\Windows Kits\10\\include\10.0.22621.0\\cppwinrt

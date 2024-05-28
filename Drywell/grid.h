@@ -14,7 +14,7 @@
 //#define CMatrix_arma CMatrix
 //#define CVector_arma CVector
 
-using namespace std;
+//using namespace std;
 
 struct _solution_state
 {
@@ -47,7 +47,7 @@ public:
     double CalcOutFlow();
     void SetStateVariable(const CVector_arma &X,const _time &t=_time::current);
     CMatrix_arma Jacobian(const CVector_arma &X, const double &dt);
-    double getVal(int i, int j, const string &val, const edge &ej);
+    double getVal(int i, int j, const std::string &val, const edge &ej);
     double getVal(int i, int j, prop val, const edge& ej);
     bool OneStepSolve(const double &dt);
     bool OneStepSolveLM(const double &dt);
@@ -57,21 +57,21 @@ public:
     {
         return &cells[i][j];
     }
-    void write_to_vtp(const string &name) const;
-    void write_to_vtp(const string &name,const CMatrix &res,const string &quanname="Moisture Content", const double &scale = 1) const;
-    void WriteResults(const string &filename);
-    double Max(const string &quan);
-    double Min(const string &quan);
-    void WriteResults(const string &quan, const string &filename);
+    void write_to_vtp(const std::string &name) const;
+    void write_to_vtp(const std::string &name,const CMatrix &res,const std::string &quanname="Moisture Content", const double &scale = 1) const;
+    void WriteResults(const std::string &filename);
+    double Max(const std::string &quan);
+    double Min(const std::string &quan);
+    void WriteResults(const std::string &quan, const std::string &filename);
     CTimeSeries<double> ExtractMoisture(int i, int j);
     _solution_state Solution_State;
     CMatrix H();
     void UpdateH();
     CMatrix Se();
-    CMatrix QuanMatrix(const string &quan);
+    CMatrix QuanMatrix(const std::string &quan);
     CMatrix Theta(_time t);
-    vector<CMatrix> results;
-    bool SetProp(const string &propname, const string &value);
+    std::vector<CMatrix> results;
+    bool SetProp(const std::string &propname, const std::string &value);
     CTimeSeries<double> &WaterDepth()
     {
         return Well_Water_Depth;
@@ -82,9 +82,9 @@ public:
     }
     bool AssignProperty(PropertyGenerator *prop);
 private:
-    vector<vector<Cell>> cells;
-    vector<vector<Interface>> interfaces_r;
-    vector<vector<Interface>> interfaces_z;
+    std::vector<std::vector<Cell>> cells;
+    std::vector<std::vector<Interface>> interfaces_r;
+    std::vector<std::vector<Interface>> interfaces_z;
     unsigned int nz;
     unsigned int nr;
     double dz;

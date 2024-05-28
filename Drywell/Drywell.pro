@@ -1,8 +1,8 @@
 TEMPLATE = app
-CONFIG += console c++11
+CONFIG += console c++14
 CONFIG -= app_bundle
-CONFIG -= qt
-
+#CONFIG -= qt
+QT += core
 DEFINES += _arma
 DEFINES += use_VTK
 CONFIG += use_VTK

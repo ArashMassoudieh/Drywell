@@ -28,8 +28,11 @@ struct _solution_state
     int max_iterations = 100;
     double err;
     double lambda=1;
-    double lambda_reduction_factor=0.9;
-    double min_time_step = 1e-8;
+    double lambda_reduction_factor=0.1;
+    double min_time_step = 1e-12;
+    unsigned int count_error_expanding_allowed = 10;
+    enum class _solution_method {NR, LM, NLC} Solution_Method = _solution_method::NLC;
+    double max_time_step = 0.1;
 };
 
 class Grid
@@ -47,6 +50,8 @@ public:
     double getVal(int i, int j, const string &val, const edge &ej);
     double getVal(int i, int j, prop val, const edge& ej);
     bool OneStepSolve(const double &dt);
+    bool OneStepSolveLM(const double &dt);
+    bool OneStepSolve_no_lamba_correction(const double &dt);
     bool Solve(const double &t0, const double &dt0, const double &t_end, const double &write_interval);
     Cell* cell(int i, int j)
     {

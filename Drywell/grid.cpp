@@ -62,7 +62,7 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt, bool resets
         X_old = GetStateVariable();
     SetStateVariable(X);
     UpdateH();
-    Res[nz*nr] = (2*pi*(r_w+dr/2)*(well_H<0?1:0)+alpha*beta*pow(max(well_H,0.0),beta-1))*(well_H-well_H_old)/dt - inflow.interpol(Solution_State.t);
+    Res[nz*nr] = (pi*pow(r_w+dr/2,2)*(well_H<=0?1:0)+alpha*beta*pow(max(well_H,0.0),beta-1))*(well_H-well_H_old)/dt - inflow.interpol(Solution_State.t);
     for (unsigned int i=0; i<nz; i++)
     {   double lower_el = -dz*(i+1);
         double interface_length = max(min(well_H - lower_el,dz),0.0);
@@ -194,7 +194,7 @@ double Grid::K(int i,int j,const edge &ej)
     double m2 = 1.0-1.0/neighbour->getValue(prop::n);
     double K1 = pow(Se1,0.5)*cells[i][j].getValue(prop::Ks)*pow(1-pow(1-pow(Se1,1.0/m1),m1),2);
     double K2 = pow(Se2,0.5)*neighbour->getValue(prop::Ks)*pow(1-pow(1-pow(Se1,1.0/m2),m2),2);
-    return min(K1,K2);
+    return max(K1,K2);
 
 }
 
@@ -318,6 +318,51 @@ CMatrix_arma Grid::Jacobian(const CVector_arma &X, const double &dt)
     return M;
 }
 
+bool Grid::OneStepSolve_no_lamba_correction(const double &dt)
+{
+    CVector_arma X = GetStateVariable();
+    CVector_arma X0 = X;
+    CVector_arma Res = Residual(X,dt);
+    double err_0 = Res.norm2();
+    double err=err_0*10;
+    Solution_State.number_of_iterations = 0;
+
+    while (err/(err_0+dt)*0>1e-3 || err>1e-6)
+    {
+        Solution_State.lambda = 1;
+
+        CMatrix_arma J = Jacobian(X,dt);
+        CVector_arma dx = Res/J;
+
+        if (dx.num != X.num)
+        {
+            Solution_State.err = err;
+            return false;
+        }
+
+        X.writetofile("X_pre.txt");
+        X-= Solution_State.lambda*dx;
+        X.writetofile("X.txt");
+        dx.writetofile("dx.txt");
+
+        Res = Residual(X,dt,true);
+        Res.writetofile("Res.txt");
+        err=Res.norm2();
+
+        Solution_State.number_of_iterations ++;
+        if (Solution_State.number_of_iterations>Solution_State.max_iterations || !(err==err))
+        {
+            cout<<"Interations: "<<Solution_State.number_of_iterations<<", Error: "<<err<< ",Ini Error:"<< err_0<<" dt: "<<dt<< endl;
+            SetStateVariable(X0);
+            return false;
+        }
+    }
+
+    SetStateVariable(X);
+    Solution_State.err = err;
+    return true;
+}
+
 bool Grid::OneStepSolve(const double &dt)
 {
     CVector_arma X = GetStateVariable();
@@ -330,47 +375,111 @@ bool Grid::OneStepSolve(const double &dt)
 
     while (err/(err_0+dt)*0>1e-3 || err>1e-6)
     {
-        CMatrix_arma J = Jacobian(X,dt);
-        //J.ScaleDiagonal(1/Solution_State.lambda);
-        //CMatrix_arma J1 = J;
-        //J1.ScaleDiagonal(1/Solution_State.lambda);
-        CVector_arma dx = Res/J;
-        //CVector_arma dx1 = Res/J1;
-        if (dx.num != X.num)
+        Solution_State.lambda = 1;
+        double err1 = err;
+        bool failed = false;
+        count_error_expanding = 0;
+        while (err1>=err_0 && !failed)
         {
-            Solution_State.err = err; 
-            return false;
+            CMatrix_arma J = Jacobian(X,dt);
+            CVector_arma dx = Res/J;
+
+            if (dx.num != X.num)
+            {
+                Solution_State.err = err;
+                return false;
+            }
+
+            X.writetofile("X_pre.txt");
+            X-= Solution_State.lambda*dx;
+            X.writetofile("X.txt");
+            dx.writetofile("dx.txt");
+
+            Res = Residual(X,dt,true);
+            Res.writetofile("Res.txt");
+            err1=Res.norm2();
+
+            if ((err1>=err_0 && count_error_expanding<=Solution_State.count_error_expanding_allowed) || !(err==err))
+            {
+                X+=Solution_State.lambda*dx;
+                //Solution_State.lambda *= Solution_State.lambda_reduction_factor;
+                count_error_expanding++;
+            }
+            else if (count_error_expanding>Solution_State.count_error_expanding_allowed)
+            {
+                failed = true;
+            }
         }
 
-        //CVector_arma X_s = X-dx1;
-        X-= dx;
-        Res = Residual(X,dt,true);
-
-        //CVector_arma Res_s = Residual(X_s,dt,true);
-
-        double err1=Res.norm2();
-        //double err_s=Res_s.norm2();
-
-        /*if (err_s<err1)
-        {   Solution_State.lambda = max(Solution_State.lambda*Solution_State.lambda_reduction_factor,0.1);
-            X = X_s;
-            err1 = err_s;
-        }*/
-        if (err1>err)
-        {
-            //Solution_State.lambda = max(Solution_State.lambda*Solution_State.lambda_reduction_factor,0.1);
-            count_error_expanding++;
-        }
-        //else if (err>err_0)
-        //{
-        //    Solution_State.lambda = max(Solution_State.lambda*Solution_State.lambda_reduction_factor,0.1);
-        //}
-        //else
-        //    Solution_State.lambda = min(Solution_State.lambda/Solution_State.lambda_reduction_factor,3.0);
-        err=err1;
+        if (!failed)
+            err=err1;
 
         Solution_State.number_of_iterations ++;
-        if (Solution_State.number_of_iterations>Solution_State.max_iterations || count_error_expanding>5 || !(err==err))
+        if (Solution_State.number_of_iterations>Solution_State.max_iterations || count_error_expanding>Solution_State.count_error_expanding_allowed || !(err==err))
+        {
+            cout<<"Interations: "<<Solution_State.number_of_iterations<<", Error Expanding: "<<count_error_expanding<<", Error: "<<err<< ",Ini Error:"<< err_0<<" dt: "<<dt<< endl;
+            SetStateVariable(X0);
+            return false;
+        }
+    }
+
+    SetStateVariable(X);
+    Solution_State.err = err;
+    return true;
+}
+
+
+bool Grid::OneStepSolveLM(const double &dt)
+{
+    CVector_arma X = GetStateVariable();
+    CVector_arma X0 = X;
+    CVector_arma Res = Residual(X,dt);
+    double err_0 = Res.norm2();
+    double err=err_0*10;
+    Solution_State.number_of_iterations = 0;
+    int count_error_expanding = 0;
+
+    count_error_expanding = 0;
+    Solution_State.lambda = 1;
+    while (err/(err_0+dt)*0>1e-3 || err>1e-6 )
+    {
+
+        double err1 = err;
+        bool failed = false;
+
+        CMatrix_arma J = Jacobian(X,dt);
+        CMatrix_arma JJT = J*Transpose(J);
+        CMatrix_arma K = (JJT + Solution_State.lambda*CMatrix_arma::Identity(JJT.getnumcols()));
+        CVector_arma dx = (Transpose(J)*Res)/K;
+
+        if (dx.num != X.num)
+        {
+            Solution_State.err = err;
+            return false;
+        }
+        J.writetofile("J.txt");
+        K.writetofile("K.txt");
+        X.writetofile("X_pre.txt");
+        X-= dx;
+        Res = Residual(X,dt,true);
+        X.writetofile("X.txt");
+        dx.writetofile("dx.txt");
+        Res.writetofile("Res.txt");
+
+        err1=Res.norm2();
+
+        if (err1<err_0)
+        {
+            Solution_State.lambda *= Solution_State.lambda_reduction_factor;
+        }
+        else
+        {
+            X+=dx;
+            Solution_State.lambda /= Solution_State.lambda_reduction_factor;
+        }
+
+        Solution_State.number_of_iterations ++;
+        if (Solution_State.number_of_iterations>Solution_State.max_iterations || count_error_expanding>Solution_State.count_error_expanding_allowed || !(err==err))
         {
             cout<<"Interations: "<<Solution_State.number_of_iterations<<", Error Expanding: "<<count_error_expanding<<", Error: "<<err<< ",Ini Error:"<< err_0<<" dt: "<<dt<< endl;
             SetStateVariable(X0);
@@ -396,7 +505,14 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
     results.push_back(snapshot);
     while (Solution_State.t + Solution_State.dt<t_end)
     {
-        if (!OneStepSolve(Solution_State.dt))
+        bool res = false;
+        if (Solution_State.Solution_Method == _solution_state::_solution_method::LM)
+            res = OneStepSolveLM(Solution_State.dt);
+        else if (Solution_State.Solution_Method == _solution_state::_solution_method::NR)
+            res = OneStepSolve(Solution_State.dt);
+        else
+            res = OneStepSolve_no_lamba_correction(Solution_State.dt);
+        if (!res)
         {
             Solution_State.dt*=Solution_State.dt_scale_factor_fail;
             if (Solution_State.dt<Solution_State.min_time_step)
@@ -422,7 +538,7 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
             }
             else if (Solution_State.number_of_iterations<Solution_State.NI_min)
             {
-                Solution_State.dt/=Solution_State.dt_scale_factor;
+                Solution_State.dt = min(Solution_State.dt/Solution_State.dt_scale_factor,Solution_State.max_time_step);
             }
         }
         CVector_arma X = GetStateVariable(_time::current);

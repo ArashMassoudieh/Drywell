@@ -20,8 +20,8 @@ struct _solution_state
 {
     double t;
     double dt;
-    unsigned int NI_max=20;
-    unsigned int NI_min=5;
+    unsigned int NI_max=30;
+    unsigned int NI_min=10;
     double dt_scale_factor = 0.75;
     int number_of_iterations = 0;
     double dt_scale_factor_fail = 0.2;

@@ -569,7 +569,7 @@ bool Grid::SetProp(const string &propname, const string &value)
             for (unsigned int j=0; j<nr; j++)
             {
                 cout<<j<<","<<dr<<endl;
-                cells[i][j].setr((j+0.5)*dr);
+                cells[i][j].setr((j+0.5)*dr+r_w);
                 cells[i][j].setz(-(i+0.5)*dz);
             }
         }

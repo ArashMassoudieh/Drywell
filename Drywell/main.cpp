@@ -36,6 +36,16 @@ int main()
         parameter_set[case1.folder] = case1;
     }
 
+    /*for (int i=0; i<10; i++)
+    {   ModelParameters case1;
+        case1.alpha = QString::number((i+1)*5);
+        case1.n = "2";
+        case1.dg = "0.5";
+        case1.rw = "0";
+        case1.folder = "Alpha_" + QString::number(i+1);
+        parameter_set[case1.folder] = case1;
+    }*/
+
 
 
     /*
@@ -93,7 +103,7 @@ int main()
         P.correlation_length_scale = 1;
         P.dx = 0.2;
         P.assign_K_gauss(); // Assigns normal scores for K_sat
-        P.Normalize_Ksat_normal_scores(0,1);
+        P.Normalize_Ksat_normal_scores(0,0.5);
         P.write("K_sat_normal_score", Results_Folder + "/K_sat_score_1.txt");
     cout<<"1"<<endl;
         CTimeSeries<double> K_sat_marginal_CDF(SoilDataFolder + "/K_sat_Marginal_Distribution.csv"); // Loading Cummulative Distributions
@@ -175,7 +185,7 @@ int main()
     cout<<"9.3"<<endl;
         G.WriteResults("n", Results_Folder + "/n.vtp");
     cout<<"9.4"<<endl;
-        G.WaterDepth().make_uniform(0.1).writefile(Results_Folder + "/waterdepth.csv");
+        G.WaterDepth().make_uniform(0.01).writefile(Results_Folder + "/waterdepth.csv");
     cout<<"done!"<<endl;
 
     QTime end_time = QTime::currentTime();

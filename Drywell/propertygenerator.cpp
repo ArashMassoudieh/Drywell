@@ -252,14 +252,14 @@ CTimeSeries<double> PropertyGenerator::MarginalDistribution(const string &quan)
 
 void PropertyGenerator::PopulateRealValue(const string &quan, const string &quanfrom)
 {
-    cout<<"PopulateRealValue-1"<<endl;
+    cout<<"PopulateRealValue-1"<<std::endl;
     CTimeSeries<double> LogTransformed = marginal_distributions[quan].LogTransformX();
-    cout<<"LogTransformed"<<endl;
+    cout<<"LogTransformed"<<std::endl;
     CTimeSeries<double> inverseCDF = LogTransformed.inverse_cumulative_uniform(100);
-    cout<<"PopulateRealValue-2"<<endl;
+    cout<<"PopulateRealValue-2"<<std::endl;
     for (unsigned int i=0; i<size(); i++)
     {
-        cout<<i<<endl;
+        cout<<i<<std::endl;
         double score = gsl_cdf_ugaussian_P(val(quanfrom,i));
         double value = exp(inverseCDF.interpol(score));
         SetVal(quan,i,value);

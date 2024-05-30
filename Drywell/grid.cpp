@@ -449,7 +449,7 @@ bool Grid::OneStepSolveLM(const double &dt)
 
         CMatrix_arma J = Jacobian(X,dt);
         CMatrix_arma JJT = J*Transpose(J);
-        CMatrix_arma K = (JJT + Solution_State.lambda*CMatrix_arma::Identity(JJT.getnumcols()));
+        CMatrix_arma K = (JJT);
         CVector_arma dx = (Transpose(J)*Res)/K;
 
         if (dx.num != X.num)
@@ -544,7 +544,7 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
         CVector_arma X = GetStateVariable(_time::current);
         SetStateVariable(X,_time::past);
         Outflow.append(Solution_State.t,CalcOutFlow());
-        cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<", Lamda = "<<Solution_State.lambda <<endl;
+        cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<", Lamda = "<<Solution_State.lambda <<std::endl;
     }
     return true;
 }
@@ -565,10 +565,10 @@ bool Grid::SetProp(const string &propname, const string &value)
     {
         r_w = aquiutils::atof(value);
         for (unsigned int i=0; i<nz; i++)
-        {   cout<<i<<endl;
+        {   cout<<i<<std::endl;
             for (unsigned int j=0; j<nr; j++)
             {
-                cout<<j<<","<<dr<<endl;
+                cout<<j<<","<<dr<<std::endl;
                 cells[i][j].setr((j+0.5)*dr+r_w);
                 cells[i][j].setz(-(i+0.5)*dz);
             }

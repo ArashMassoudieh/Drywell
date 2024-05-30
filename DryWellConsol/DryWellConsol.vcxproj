@@ -50,11 +50,13 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
-    <Keyword>Win32Proj</Keyword>
+    <Keyword>QtVS_v304</Keyword>
     <ProjectGuid>{f275fa61-5f06-4a17-ad42-ce72a54260bc}</ProjectGuid>
     <RootNamespace>DryWellConsol</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>DryWellConsolFixed</ProjectName>
+	<QtMsBuild Condition="'$(QtMsBuild)'=='' OR !Exists('$(QtMsBuild)\qt.targets')"
+      >$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -135,7 +137,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;use_VTK;_arma;ARMA_USE_LAPACK;ARMA_USE_BLAS;windows;_WINDOWS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\VTK-9.2.0\include\vtk-9.2;..\..\Utilities;..\Drywell;..\armadillo-header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\QT\5.15.2\MSVC2019_64\include;..\..\QT\5.15.2\MSVC2019_64\include\QtPrintSupport;..\..\QT\5.15.2\MSVC2019_64\include\QtWidgets;..\..\QT\5.15.2\MSVC2019_64\include\QtGui;..\..\QT\5.15.2\MSVC2019_64\include\QtANGLE;..\..\QT\5.15.2\MSVC2019_64\include\QtCore;..\..\VTK-9.2.0\include\vtk-9.2;..\..\Utilities;..\Drywell;..\armadillo-header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -160,7 +162,7 @@ copy "..\..\VTK-9.2.0\bin\*.dll" "$(TargetDir)"</Command>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;use_VTK;_arma;_arma;ARMA_USE_LAPACK;ARMA_USE_BLAS;windows;_WINDOWS</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\..\VTK-9.2.0\include\vtk-9.2;..\..\Utilities;..\Drywell;..\armadillo-header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\QT\5.15.2\MSVC2019_64\include;..\..\QT\5.15.2\MSVC2019_64\include\QtPrintSupport;..\..\QT\5.15.2\MSVC2019_64\include\QtWidgets;..\..\QT\5.15.2\MSVC2019_64\include\QtGui;..\..\QT\5.15.2\MSVC2019_64\include\QtANGLE;..\..\QT\5.15.2\MSVC2019_64\include\QtCore;..\..\VTK-9.2.0\include\vtk-9.2;..\..\Utilities;..\Drywell;..\armadillo-header;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

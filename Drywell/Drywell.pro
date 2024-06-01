@@ -7,10 +7,8 @@ DEFINES += _arma
 DEFINES += use_VTK
 CONFIG += use_VTK
 
-#DEFINES += VALGRIND
-
-CONFIG += Arash
-DEFINES += Arash
+CONFIG += khiem
+DEFINES += khiem
 
 Arash {
     #VTKHEADERPATH = /home/arash/Projects/VTK-9.2.0/include/vtk-9.2

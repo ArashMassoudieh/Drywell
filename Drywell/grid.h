@@ -68,6 +68,8 @@ public:
     CMatrix H();
     void UpdateH();
     CMatrix Se();
+    double TotalWaterContent();
+    double WellWaterContent();
     CMatrix QuanMatrix(const std::string &quan);
     CMatrix Theta(_time t);
     std::vector<CMatrix> results;
@@ -75,6 +77,14 @@ public:
     CTimeSeries<double> &WaterDepth()
     {
         return Well_Water_Depth;
+    }
+    CTimeSeries<double> &TotalWaterInSoil()
+    {
+        return Total_Water_Content;
+    }
+    CTimeSeries<double> &TotalWaterInWell()
+    {
+        return Well_Water_Content;
     }
     CTimeSeries<double> &OutFlow()
     {
@@ -102,6 +112,8 @@ private:
     CTimeSeries<double> inflow;
     CTimeSeries<double> Well_Water_Depth;
     CTimeSeries<double> Outflow;
+    CTimeSeries<double> Total_Water_Content;
+    CTimeSeries<double> Well_Water_Content;
 
 };
 

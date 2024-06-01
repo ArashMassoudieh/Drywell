@@ -54,6 +54,23 @@ Grid::Grid(int _nz, int _nr, double depth, double radius)
         interfaces_z.resize(nr);
 }
 
+double Grid::TotalWaterContent()
+{
+    double out = 0;
+    for (unsigned int i=0; i<nz; i++)
+        for (unsigned int j=0; j<nr; j++)
+        {
+            double r = (j+0.5)*dr+r_w;
+            double volume = 2*pi*r*dr*dz;
+            out+=cell(i,j)->Theta(_time::current)*volume;
+        }
+    return out;
+}
+double Grid::WellWaterContent()
+{
+    return pi*pow(r_w+dr/2,2)*well_H;
+}
+
 CVector_arma Grid::Residual(const CVector_arma &X, const double &dt, bool resetstatevariables)
 {
     CVector_arma Res(nr*nz+1);
@@ -114,10 +131,11 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt, bool resets
                 if (cells[i][j].Boundary.boundary_edge!=edge::up && Neighbour(i,j,edge::up))
                 {
                     Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::up)->H(_time::current,false));
+                    Res[j+nr*i] += -1/dz*(K(i,j,edge::up));
                 }
                 if (cells[i][j].Boundary.boundary_edge!=edge::down && Neighbour(i,j,edge::down))
                 {   Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::down)->H(_time::current,false));
-                    Res[j+nr*i] += -1/dz*(K(i,j,edge::up)-K(i,j,edge::down));
+                    Res[j+nr*i] += 1/dz*(K(i,j,edge::down));
                 }
 
             }
@@ -193,7 +211,7 @@ double Grid::K(int i,int j,const edge &ej)
     double m1 = 1.0-1.0/cells[i][j].getValue(prop::n);
     double m2 = 1.0-1.0/neighbour->getValue(prop::n);
     double K1 = pow(Se1,0.5)*cells[i][j].getValue(prop::Ks)*pow(1-pow(1-pow(Se1,1.0/m1),m1),2);
-    double K2 = pow(Se2,0.5)*neighbour->getValue(prop::Ks)*pow(1-pow(1-pow(Se1,1.0/m2),m2),2);
+    double K2 = pow(Se2,0.5)*neighbour->getValue(prop::Ks)*pow(1-pow(1-pow(Se2,1.0/m2),m2),2);
     return std::max(K1,K2);
 
 }
@@ -528,7 +546,8 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
             }
             Solution_State.t += Solution_State.dt;
             Well_Water_Depth.append(Solution_State.t,well_H);
-
+            Total_Water_Content.append(Solution_State.t,TotalWaterContent());
+            Well_Water_Content.append(Solution_State.t,WellWaterContent());
 
             if (Solution_State.number_of_iterations>Solution_State.NI_max && Solution_State.dt>1e-5)
             {
@@ -544,6 +563,7 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
         CVector_arma X = GetStateVariable(_time::current);
         SetStateVariable(X,_time::past);
         Outflow.append(Solution_State.t,CalcOutFlow());
+
         cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<", Lamda = "<<Solution_State.lambda <<std::endl;
     }
     return true;

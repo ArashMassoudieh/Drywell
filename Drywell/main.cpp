@@ -28,7 +28,7 @@ int main()
 {
     QMap<QString, ModelParameters> parameter_set;
 
-    for (int i=0; i<10; i++)
+    /*for (int i=0; i<10; i++)
     {   ModelParameters case1;
         case1.alpha = QString::number((i+1)*5);
         case1.n = "2";
@@ -36,17 +36,17 @@ int main()
         case1.rw = "0";
         case1.folder = "Alpha_" + QString::number((i+1)*5);
         parameter_set[case1.folder] = case1;
-    }
+    }*/
 
-    /*for (int i=0; i<10; i++)
+    for (int i=0; i<10; i++)
     {   ModelParameters case1;
-        case1.alpha = QString::number((i+1)*5);
+        case1.alpha = "30";
         case1.n = "2";
         case1.dg = "0.5";
         case1.rw = "0";
-        case1.folder = "Alpha_" + QString::number(i+1);
+        case1.folder = "Realization_" + QString::number(i+1);
         parameter_set[case1.folder] = case1;
-    }*/
+    }
 
 
 
@@ -84,18 +84,18 @@ int main()
     parameter_set[case5.folder] = case5;
     */
     enum class _mode {homogeneous, heterogeneous};
-    _mode mode = _mode::homogeneous;
-    int nz=10;
-    int nr=10;
+    _mode mode = _mode::heterogeneous;
+    int nz=20;
+    int nr=20;
 
     for (QMap<QString, ModelParameters>::iterator it = parameter_set.begin(); it!= parameter_set.end(); it++)
     {
         QTime start_time = QTime::currentTime();
         cout<<"Start time = " + start_time.toString().toStdString();
-        std::string Results_Folder = "C:/Projects/Drywell_Results/Homogeneous/" + it->folder.toStdString();
+        std::string Results_Folder = "/home/arash/Projects/Drywell_Result/Homogeneous/" + it->folder.toStdString();
         //std::string Results_Folder = "F:/Projects/Drywell_Result";
-        QDir dir("C:/Projects/Drywell_Results/Homogeneous/");
-        std::string SoilDataFolder = "C:/Projects/Drywell_Results/Homogeneous/";
+        QDir dir("/home/arash/Projects/Drywell_Result/Homogeneous");
+        std::string SoilDataFolder = "/home/arash/Projects/Drywell_Result/Heterogeneous";
         if (!dir.exists(it->folder))
         {
             bool res = dir.mkdir(it->folder);
@@ -165,7 +165,7 @@ int main()
     {   G.SetProp("alpha",it->alpha.toStdString());
         G.SetProp("n",it->n.toStdString());
     }
-    G.SetProp("r_w",it->rw.toStdString());
+
     cout<<"7.1"<<std::endl;
         G.SetProp("inflow", "/home/arash/Projects/Drywell_Result/inflow_zero.txt");
     cout<<"7.2"<<std::endl;
@@ -173,7 +173,7 @@ int main()
     cout<<"7.3"<<std::endl;
         G.SetProp("well_H_old","0");
     cout<<"7.4"<<std::endl;
-        G.SetProp("r_w","0.025");
+        G.SetProp("r_w",it->rw.toStdString());
     cout<<"8"<<std::endl;
         G.Solve(0,0.000001,1,0.005);
     cout<<"9"<<std::endl;
@@ -188,6 +188,8 @@ int main()
         G.WriteResults("n", Results_Folder + "/n.vtp");
     cout<<"9.4"<<endl;
         G.WaterDepth().make_uniform(0.01).writefile(Results_Folder + "/waterdepth.csv");
+        G.TotalWaterInSoil().make_uniform(0.01).writefile(Results_Folder + "/totalwaterinsoil.csv");
+        G.TotalWaterInWell().make_uniform(0.01).writefile(Results_Folder + "/totalwaterinwell.csv");
     cout<<"done!"<<endl;
     QTime end_time = QTime::currentTime();
     cout<<"End time = " + end_time.toString().toStdString();

@@ -91,7 +91,7 @@ public:
         return Outflow;
     }
     bool AssignProperty(PropertyGenerator *prop);
-    void SetName(std::string _name) {name = _name};
+    void SetName(std::string _name) {name = _name;};
 private:
     std::vector<std::vector<Cell>> cells;
     std::vector<std::vector<Interface>> interfaces_r;

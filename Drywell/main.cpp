@@ -8,7 +8,7 @@
 #include <QDir>
 #include <QDebug>
 #include <QTime>
-
+#include "omp.h"
 #ifdef VALGRIND
 #include <valgrind/callgrind.h>
 #endif
@@ -87,11 +87,14 @@ int main()
     _mode mode = _mode::heterogeneous;
     int nz=20;
     int nr=20;
+omp_set_num_threads(8);
 
-    for (QMap<QString, ModelParameters>::iterator it = parameter_set.begin(); it!= parameter_set.end(); it++)
+#pragma omp parallel for
+    for (int i=0; i<parameter_set.count(); i++)
     {
+        QMap<QString, ModelParameters>::iterator it = parameter_set.begin()+i;
         QTime start_time = QTime::currentTime();
-        cout<<"Start time = " + start_time.toString().toStdString();
+        cout<<it->folder.toStdString() + ", Start time = " + start_time.toString().toStdString()<<endl;
         std::string Results_Folder = "/home/arash/Projects/Drywell_Result/Homogeneous/" + it->folder.toStdString();
         //std::string Results_Folder = "F:/Projects/Drywell_Result";
         QDir dir("/home/arash/Projects/Drywell_Result/Homogeneous");
@@ -101,7 +104,7 @@ int main()
             bool res = dir.mkdir(it->folder);
             qDebug()<<res;
         }
-        PropertyGenerator P(nz);
+        PropertyGenerator P(nz,i*505);
         P.correlation_length_scale = 1;
         P.dx = 0.2;
         P.assign_K_gauss(); // Assigns normal scores for K_sat

@@ -60,6 +60,11 @@ HEADERS += \
 
 INCLUDEPATH += ../../Utilities/
 
+QMAKE_CXXFLAGS *= "-Xpreprocessor -fopenmp"
+QMAKE_LFLAGS +=  -fopenmp
+LIBS += -lgomp -lpthread
+LIBS += -lpthread
+
 win32 {
     LAPACK_INCLUDE = $$PWD/include
     #64 bits build
@@ -264,6 +269,5 @@ CONFIG(debug, debug|release) {
     # QMAKE_CXXFLAGS+=-pg
     # QMAKE_LFLAGS+=-pg
     # macx: DEFINES += NO_OPENMP
-    ! macx: LIBS += -lgomp -lpthread
-    macx: LIBS += -lpthread
+    LIBS += -lgomp -lpthread
 }

@@ -91,6 +91,7 @@ public:
         return Outflow;
     }
     bool AssignProperty(PropertyGenerator *prop);
+    void SetName(std::string _name) {name = _name};
 private:
     std::vector<std::vector<Cell>> cells;
     std::vector<std::vector<Interface>> interfaces_r;
@@ -114,6 +115,7 @@ private:
     CTimeSeries<double> Outflow;
     CTimeSeries<double> Total_Water_Content;
     CTimeSeries<double> Well_Water_Content;
+    std::string name;
 
 };
 

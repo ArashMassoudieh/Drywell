@@ -6,27 +6,27 @@
 #endif // ! _WINDOWS
 
 
-PropertyGenerator::PropertyGenerator():std::vector<Propfull>()
+PropertyGenerator::PropertyGenerator(int seed):std::vector<Propfull>()
 {
 #ifndef _WINDOWS
     struct timeval tv;
     gettimeofday(&tv, 0);
-    unsigned long mySeed = tv.tv_sec + tv.tv_usec;
+    unsigned long mySeed = tv.tv_sec + tv.tv_usec+seed;
 #else
-    long int mySeed = static_cast<long int>(time(NULL));
+    long int mySeed = static_cast<long int>(time(NULL)+seed);
 #endif // !_WINDOWS
 gsl_rng_set(r, mySeed);
 }
 
 
-PropertyGenerator::PropertyGenerator(unsigned int n):std::vector<Propfull>(n)
+PropertyGenerator::PropertyGenerator(unsigned int n,int seed):std::vector<Propfull>(n)
 {
 #ifndef _WINDOWS
     struct timeval tv;
     gettimeofday(&tv, 0);
-    unsigned long mySeed = tv.tv_sec + tv.tv_usec;
+    unsigned long mySeed = tv.tv_sec + tv.tv_usec+seed;
 #else
-    long int mySeed = static_cast<long int>(time(NULL));
+    long int mySeed = static_cast<long int>(time(NULL)+seed);
 #endif // !_WINDOWS
     gsl_rng_set(r, mySeed);
 
@@ -252,14 +252,14 @@ CTimeSeries<double> PropertyGenerator::MarginalDistribution(const std::string &q
 
 void PropertyGenerator::PopulateRealValue(const std::string &quan, const std::string &quanfrom)
 {
-    cout<<"PopulateRealValue-1"<<std::endl;
+    //cout<<"PopulateRealValue-1"<<std::endl;
     CTimeSeries<double> LogTransformed = marginal_distributions[quan].LogTransformX();
-    cout<<"LogTransformed"<<std::endl;
+    //cout<<"LogTransformed"<<std::endl;
     CTimeSeries<double> inverseCDF = LogTransformed.inverse_cumulative_uniform(100);
-    cout<<"PopulateRealValue-2"<<std::endl;
+    //cout<<"PopulateRealValue-2"<<std::endl;
     for (unsigned int i=0; i<size(); i++)
     {
-        cout<<i<<std::endl;
+        //cout<<i<<std::endl;
         double score = gsl_cdf_ugaussian_P(val(quanfrom,i));
         double value = exp(inverseCDF.interpol(score));
         SetVal(quan,i,value);

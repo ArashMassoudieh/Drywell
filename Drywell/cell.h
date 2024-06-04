@@ -9,7 +9,7 @@
 enum class edge {left, right, up, down};
 enum class _time {past, current, both};
 enum class boundaryType {none, gradient, fixedpressure, fixedmoisture, symmetry};
-enum class prop {theta, theta_past, theta_s, theta_r, alpha, n, Ks, epsilon, H};
+enum class prop {theta, theta_past, theta_s, theta_r, alpha, n, Ks, epsilon, H, C, C_past};
 struct boundary
 {
     boundaryType type;
@@ -28,6 +28,8 @@ struct _quantypes
     double Ks = 1;
     double epsilon = 0.01;
     double H;
+    double C = 0;
+    double C_past = 0;
 
 };
 
@@ -42,7 +44,9 @@ public:
     Cell& operator=(const Cell &RHS);
     void InitiateQuans();
     void SetTheta(const double &val, const _time &t);
+    void SetC(const double &val, const _time &t);
     double Theta(const _time &t) const;
+    double C(const _time &t) const;
     double getValue(const std::string &quan) const;
     double getValue(prop property) const;
     void SetValue(const std::string &quan, const double &value);

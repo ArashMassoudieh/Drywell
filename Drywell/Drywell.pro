@@ -9,8 +9,16 @@ CONFIG += use_VTK
 
 #DEFINES += VALGRIND
 
-CONFIG += PowerEdge
-DEFINES += PowerEdge
+CONFIG += Arash
+DEFINES += Arash
+
+PowerEdge
+{
+    #Arash Home PowerEdge
+    VTKBUILDPATH = /mnt/3rd900/Projects/VTK-build
+    VTKHEADERPATH = /mnt/3rd900/Projects/VTK
+    VTK_V = -9.0
+}
 
 Arash {
     #VTKHEADERPATH = /home/arash/Projects/VTK-9.2.0/include/vtk-9.2
@@ -24,13 +32,7 @@ Arash {
     VTK_V = -9.3
 }
 
-PowerEdge
-{
-    #Arash Home PowerEdge
-    VTKBUILDPATH = /mnt/3rd900/Projects/VTK-build
-    VTKHEADERPATH = /mnt/3rd900/Projects/VTK
-    VTK_V = -9.0
-}
+
 
 SOURCES += \
     ../../Utilities/Distribution.cpp \

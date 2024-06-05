@@ -77,6 +77,10 @@ double Cell::getValue(const std::string &quan) const
         return quants.epsilon;
     else if (quan == "H")
         return quants.H;
+    else if (quan == "C")
+        return quants.C;
+    else if (quan == "C_past")
+        return quants.C_past;
     else
         return 0;
 }
@@ -104,6 +108,10 @@ void Cell::SetValue(const std::string &quan, const double &value)
         quants.epsilon = value;
     else if (quan == "H")
         quants.H = value;
+    else if (quan == "C")
+        quants.C = value;
+    else if (quan == "C_past")
+        quants.C_past = value;
 }
 
 double Cell::getValue(prop quan) const
@@ -134,8 +142,14 @@ double Cell::getValue(prop quan) const
         case prop::theta_s:
             return quants.theta_s;
             break;
-    case prop::H:
-        return quants.H;
+        case prop::H:
+            return quants.H;
+            break;
+        case prop::C:
+            return quants.C;
+            break;
+    case prop::C_past:
+        return quants.C_past;
         break;
     }
     
@@ -172,6 +186,12 @@ void Cell::SetValue(prop quan, const double& value)
     case prop::H:
         quants.H = value;
         break;
+    case prop::C:
+        quants.C = value;
+        break;
+    case prop::C_past:
+        quants.C_past = value;
+        break;
     }
 
 }
@@ -198,6 +218,31 @@ double Cell::Theta(const _time &t) const
     else
     {
         return quants.theta;
+    }
+}
+
+void Cell::SetC(const double &val,const _time &t)
+{
+    if (t==_time::current)
+        quants.C = val;
+    else if (t==_time::past)
+        quants.C_past=val;
+    else
+    {
+        quants.C = val;
+        quants.C_past=val;
+    }
+}
+
+double Cell::C(const _time &t) const
+{
+    if (t==_time::current)
+          return quants.C;
+    else if (t==_time::past)
+        return quants.C_past;
+    else
+    {
+        return quants.C;
     }
 }
 

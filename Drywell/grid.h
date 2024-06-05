@@ -44,8 +44,10 @@ public:
     Grid& operator=(const Grid &RHS);
     Grid(int nz, int nr, double depth, double radius);
     CVector_arma Residual(const CVector_arma &X, const double &dt, bool resetstatevariables = false);
+    CVector_arma Residual_TR(const CVector_arma &X, const double &dt, bool resetstatevariables = false);
     double CalcOutFlow();
     void SetStateVariable(const CVector_arma &X,const _time &t=_time::current);
+    void SetStateVariable_TR(const CVector_arma &X,const _time &t=_time::current);
     CMatrix_arma Jacobian(const CVector_arma &X, const double &dt);
     double getVal(int i, int j, const std::string &val, const edge &ej);
     double getVal(int i, int j, prop val, const edge& ej);
@@ -91,6 +93,7 @@ public:
         return Outflow;
     }
     bool AssignProperty(PropertyGenerator *prop);
+    void SetName(std::string _name) {name = _name;};
 private:
     std::vector<std::vector<Cell>> cells;
     std::vector<std::vector<Interface>> interfaces_r;
@@ -104,6 +107,7 @@ private:
     double invC(int i,int j,const edge &ej);
     Cell* Neighbour(int i, int j, const edge &ej, bool op=false);
     CVector_arma GetStateVariable(const _time &t=_time::current) const;
+    CVector_arma GetStateVariable_TR(const _time &t=_time::current) const;
     double well_H = 0;
     double well_H_old = 0;
     double r_w;
@@ -114,7 +118,16 @@ private:
     CTimeSeries<double> Outflow;
     CTimeSeries<double> Total_Water_Content;
     CTimeSeries<double> Well_Water_Content;
+    std::string name;
 
 };
+
+double upstream(const double &x1, const double &x2, const double &val1, const double &val2)
+{
+    if (x1>x2)
+        return val1;
+    else
+        return val2;
+}
 
 #endif // GRID_H

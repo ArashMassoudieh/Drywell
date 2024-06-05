@@ -10,6 +10,14 @@ CONFIG += use_VTK
 CONFIG += khiem
 DEFINES += khiem
 
+PowerEdge
+{
+    #Arash Home PowerEdge
+    VTKBUILDPATH = /mnt/3rd900/Projects/VTK-build
+    VTKHEADERPATH = /mnt/3rd900/Projects/VTK
+    VTK_V = -9.0
+}
+
 Arash {
     #VTKHEADERPATH = /home/arash/Projects/VTK-9.2.0/include/vtk-9.2
     #VTKBUILDPATH = /home/arash/Projects/VTK-9.2.0/lib
@@ -21,6 +29,8 @@ Arash {
     VTKHEADERPATH = /home/arash/Project_Khiem/VTK
     VTK_V = -9.3
 }
+
+
 
 SOURCES += \
     ../../Utilities/Distribution.cpp \
@@ -57,6 +67,11 @@ HEADERS += \
 
 
 INCLUDEPATH += ../../Utilities/
+
+QMAKE_CXXFLAGS *= "-Xpreprocessor -fopenmp"
+QMAKE_LFLAGS +=  -fopenmp
+LIBS += -lgomp -lpthread
+LIBS += -lpthread
 
 win32 {
     LAPACK_INCLUDE = $$PWD/include
@@ -262,6 +277,5 @@ CONFIG(debug, debug|release) {
     # QMAKE_CXXFLAGS+=-pg
     # QMAKE_LFLAGS+=-pg
     # macx: DEFINES += NO_OPENMP
-    ! macx: LIBS += -lgomp -lpthread
-    macx: LIBS += -lpthread
+    LIBS += -lgomp -lpthread
 }

@@ -150,6 +150,85 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt, bool resets
     return Res;
 }
 
+CVector_arma Grid::Residual_TR(const CVector_arma &X, const double &dt, bool resetstatevariables)
+{
+    CVector_arma Res(nr*nz);
+    CVector_arma X_old;
+    if (resetstatevariables)
+        X_old = GetStateVariable_TR();
+    SetStateVariable_TR(X);
+
+    for (unsigned int i=0; i<nz; i++)
+    {
+        double lower_el = -dz*(i+1);
+        double interface_length = std::max(std::min(well_H - lower_el,dz),0.0);
+        for (unsigned int j=0; j<nr; j++)
+        {
+            double r = (j+0.5)*dr+r_w;
+            if (cells[i][j].Boundary.type==boundaryType::none)
+            {
+                Res[j+nr*i] = (cells[i][j].Theta(_time::current)*cells[i][j].C(_time::current) -cells[i][j].Theta(_time::past)*cells[i][j].C(_time::past))/dt;
+                Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::left)->H(_time::current,false))*upstream(cells[i][j].H(_time::current,false),Neighbour(i,j,edge::left)->H(_time::current,false),cells[i][j].C(_time::current),Neighbour(i,j,edge::left)->C(_time::current));
+                Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::right)->H(_time::current,false))*upstream(cells[i][j].H(_time::current,false),Neighbour(i,j,edge::right)->H(_time::current,false),cells[i][j].C(_time::current),Neighbour(i,j,edge::right)->C(_time::current));
+                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::up)->H(_time::current,false)-dz)*upstream(cells[i][j].H(_time::current,false),Neighbour(i,j,edge::up)->H(_time::current,false)+dz,cells[i][j].C(_time::current),Neighbour(i,j,edge::up)->C(_time::current));
+                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::down)->H(_time::current,false)+dz)*upstream(cells[i][j].H(_time::current,false),Neighbour(i,j,edge::down)->H(_time::current,false)-dz,cells[i][j].C(_time::current),Neighbour(i,j,edge::up)->C(_time::current));
+            }
+            else if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
+            {
+                Res[j+nr*i] = cells[i][j].Theta(_time::current) - cells[i][j].Boundary.value;
+            }
+            else if (cells[i][j].Boundary.type==boundaryType::fixedpressure)
+            {
+                if (interface_length>0)
+                {   Res[j+nr*i] = cells[i][j].H(_time::current,false) - std::max(well_H+(i+1)*dz,0.0)*(interface_length/dz);
+                    Res[nz*nr]+=2*interface_length*pi*(r_w+dr/2)*K(i,j,edge::right)*(std::max(well_H+(i+1)*dz,0.0)-Neighbour(i,j,edge::right)->H(_time::current,false));
+                }
+                else
+                {
+                    Res[j+nr*i] = cells[i][j].Theta(_time::current)-Neighbour(i,j,edge::right)->Theta(_time::current);
+                }
+            }
+            else if (cells[i][j].Boundary.type==boundaryType::gradient)
+            {
+                if (cells[i][j].Boundary.boundary_edge == edge::down || cells[i][j].Boundary.boundary_edge == edge::up)
+                    Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge, true)->Theta(_time::current))/dz;
+                else
+                    Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge, true)->Theta(_time::current))/dr;
+            }
+            else if (cells[i][j].Boundary.type==boundaryType::symmetry)
+            {
+                Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
+                if (cells[i][j].Boundary.boundary_edge!=edge::left && Neighbour(i,j,edge::left))
+                {
+                    Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::left)->H(_time::current,false));
+                }
+                if (cells[i][j].Boundary.boundary_edge!=edge::right && Neighbour(i,j,edge::right))
+                {
+                    Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::right)->H(_time::current,false));
+                }
+                if (cells[i][j].Boundary.boundary_edge!=edge::up && Neighbour(i,j,edge::up))
+                {
+                    Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::up)->H(_time::current,false));
+                    Res[j+nr*i] += -1/dz*(K(i,j,edge::up));
+                }
+                if (cells[i][j].Boundary.boundary_edge!=edge::down && Neighbour(i,j,edge::down))
+                {   Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::down)->H(_time::current,false));
+                    Res[j+nr*i] += 1/dz*(K(i,j,edge::down));
+                }
+
+            }
+
+        }
+    }
+
+    if (resetstatevariables)
+    {   SetStateVariable(X_old);
+        UpdateH();
+    }
+    return Res;
+}
+
+
 double Grid::CalcOutFlow()
 {
     double out=0;
@@ -184,6 +263,25 @@ void Grid::SetStateVariable(const CVector_arma &X,const _time &t)
 
 }
 
+void Grid::SetStateVariable_TR(const CVector_arma &X,const _time &t)
+{
+    for (unsigned int i=0; i<nz; i++)
+        for (unsigned int j=0; j<nr; j++)
+        {
+            if (t==_time::current)
+                cells[i][j].SetValue(prop::C, X[j+nr*i]);
+            else if (t==_time::past)
+                cells[i][j].SetValue(prop::C_past, X[j+nr*i]);
+            else if (t==_time::both)
+            {
+                cells[i][j].SetValue(prop::C, X[j+nr*i]);
+                cells[i][j].SetValue(prop::C_past, X[j+nr*i]);
+            }
+        }
+
+}
+
+
 CVector_arma Grid::GetStateVariable(const _time &t) const
 {
     CVector_arma X(nr*nz+1);
@@ -192,6 +290,16 @@ CVector_arma Grid::GetStateVariable(const _time &t) const
             X[j+nr*i] = cells[i][j].Theta(t);
 
     X[nr*nz] = well_H;
+    return X;
+}
+
+CVector_arma Grid::GetStateVariable_TR(const _time &t) const
+{
+    CVector_arma X(nr*nz);
+    for (unsigned int i=0; i<nz; i++)
+        for (unsigned int j=0; j<nr; j++)
+            X[j+nr*i] = cells[i][j].getValue(prop::C);
+
     return X;
 }
 
@@ -563,8 +671,8 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
         CVector_arma X = GetStateVariable(_time::current);
         SetStateVariable(X,_time::past);
         Outflow.append(Solution_State.t,CalcOutFlow());
-
-        cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<", Lamda = "<<Solution_State.lambda <<std::endl;
+        cout<< name << ":" << Solution_State.t/t_end*100 << "% done!" << endl;
+        //cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<", Lamda = "<<Solution_State.lambda <<std::endl;
     }
     return true;
 }
@@ -585,10 +693,10 @@ bool Grid::SetProp(const std::string &propname, const std::string &value)
     {
         r_w = aquiutils::atof(value);
         for (unsigned int i=0; i<nz; i++)
-        {   cout<<i<<std::endl;
+        {   //cout<<i<<std::endl;
             for (unsigned int j=0; j<nr; j++)
             {
-                cout<<j<<","<<dr<<std::endl;
+                //cout<<j<<","<<dr<<std::endl;
                 cells[i][j].setr((j+0.5)*dr+r_w);
                 cells[i][j].setz(-(i+0.5)*dz);
             }

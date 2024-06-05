@@ -47,8 +47,8 @@ enum class params {K_sat, alpha, n};
 class PropertyGenerator: public std::vector<Propfull>
 {
 public:
-    PropertyGenerator();
-    PropertyGenerator(unsigned int n);
+    PropertyGenerator(int seed=0);
+    PropertyGenerator(unsigned int n, int seed);
     double dx;
     double correlation_length_scale;
     void assign_K_gauss();

@@ -24,10 +24,13 @@ struct _solution_state
     unsigned int NI_min=10;
     double dt_scale_factor = 0.75;
     int number_of_iterations = 0;
+    int number_of_iterations_TR = 0;
     double dt_scale_factor_fail = 0.2;
     int max_iterations = 100;
     double err;
+    double err_TR;
     double lambda=1;
+    double lambda_TR=1;
     double lambda_reduction_factor=0.1;
     double min_time_step = 1e-12;
     unsigned int count_error_expanding_allowed = 10;
@@ -49,12 +52,14 @@ public:
     void SetStateVariable(const CVector_arma &X,const _time &t=_time::current);
     void SetStateVariable_TR(const CVector_arma &X,const _time &t=_time::current);
     CMatrix_arma Jacobian(const CVector_arma &X, const double &dt);
+    CMatrix_arma Jacobian_TR(const CVector_arma &X, const double &dt);
     double getVal(int i, int j, const std::string &val, const edge &ej);
     double getVal(int i, int j, prop val, const edge& ej);
     bool OneStepSolve(const double &dt);
     bool OneStepSolveLM(const double &dt);
     bool OneStepSolve_no_lamba_correction(const double &dt);
-    bool Solve(const double &t0, const double &dt0, const double &t_end, const double &write_interval);
+    bool OneStepSolve_TR(const double &dt);
+    bool Solve(const double &t0, const double &dt0, const double &t_end, const double &write_interval, bool transport = false);
     Cell* cell(int i, int j)
     {
         return &cells[i][j];
@@ -62,6 +67,7 @@ public:
     void write_to_vtp(const std::string &name) const;
     void write_to_vtp(const std::string &name,const CMatrix &res,const std::string &quanname="Moisture Content", const double &scale = 1) const;
     void WriteResults(const std::string &filename);
+    void WriteResultsC(const std::string &filename);
     double Max(const std::string &quan);
     double Min(const std::string &quan);
     void WriteResults(const std::string &quan, const std::string &filename);
@@ -69,12 +75,15 @@ public:
     _solution_state Solution_State;
     CMatrix H();
     void UpdateH();
+    void UpdateC();
     CMatrix Se();
     double TotalWaterContent();
     double WellWaterContent();
     CMatrix QuanMatrix(const std::string &quan);
     CMatrix Theta(_time t);
+    CMatrix C(_time t);
     std::vector<CMatrix> results;
+    std::vector<CMatrix> concentrations;
     bool SetProp(const std::string &propname, const std::string &value);
     CTimeSeries<double> &WaterDepth()
     {
@@ -122,12 +131,6 @@ private:
 
 };
 
-double upstream(const double &x1, const double &x2, const double &val1, const double &val2)
-{
-    if (x1>x2)
-        return val1;
-    else
-        return val2;
-}
+double upstream(const double &x1, const double &x2, const double &val1, const double &val2);
 
 #endif // GRID_H

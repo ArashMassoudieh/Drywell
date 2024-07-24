@@ -155,7 +155,7 @@ CVector_arma Grid::Residual_TR(const CVector_arma &X, const double &dt, bool res
     CVector_arma Res(nr*nz);
     CVector_arma X_old;
     if (resetstatevariables)
-        X_old = GetStateVariable_TR();
+        X_old = GetStateVariable_TR(_time::current);
     SetStateVariable_TR(X);
 
     for (unsigned int i=0; i<nz; i++)
@@ -175,54 +175,31 @@ CVector_arma Grid::Residual_TR(const CVector_arma &X, const double &dt, bool res
             }
             else if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
             {
-                Res[j+nr*i] = cells[i][j].Theta(_time::current) - cells[i][j].Boundary.value;
+                Res[j+nr*i] = cells[i][j].C(_time::current) - 0;
             }
             else if (cells[i][j].Boundary.type==boundaryType::fixedpressure)
             {
                 if (interface_length>0)
-                {   Res[j+nr*i] = cells[i][j].H(_time::current,false) - std::max(well_H+(i+1)*dz,0.0)*(interface_length/dz);
-                    Res[nz*nr]+=2*interface_length*pi*(r_w+dr/2)*K(i,j,edge::right)*(std::max(well_H+(i+1)*dz,0.0)-Neighbour(i,j,edge::right)->H(_time::current,false));
-                }
+                    Res[j+nr*i] = cells[i][j].C(_time::current) - 1;
                 else
                 {
-                    Res[j+nr*i] = cells[i][j].Theta(_time::current)-Neighbour(i,j,edge::right)->Theta(_time::current);
+                    Res[j+nr*i] = cells[i][j].C(_time::current) - Neighbour(i,j, cells[i][j].Boundary.boundary_edge,true)->C(_time::current);
                 }
             }
             else if (cells[i][j].Boundary.type==boundaryType::gradient)
             {
-                if (cells[i][j].Boundary.boundary_edge == edge::down || cells[i][j].Boundary.boundary_edge == edge::up)
-                    Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge, true)->Theta(_time::current))/dz;
-                else
-                    Res[j+nr*i] = (cells[i][j].Theta(_time::current)-Neighbour(i,j,cells[i][j].Boundary.boundary_edge, true)->Theta(_time::current))/dr;
+                Res[j+nr*i] = cells[i][j].C(_time::current) - Neighbour(i,j, cells[i][j].Boundary.boundary_edge,true)->C(_time::current);
             }
             else if (cells[i][j].Boundary.type==boundaryType::symmetry)
             {
-                Res[j+nr*i] = (cells[i][j].Theta(_time::current)-cells[i][j].Theta(_time::past))/dt;
-                if (cells[i][j].Boundary.boundary_edge!=edge::left && Neighbour(i,j,edge::left))
-                {
-                    Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::left)->H(_time::current,false));
-                }
-                if (cells[i][j].Boundary.boundary_edge!=edge::right && Neighbour(i,j,edge::right))
-                {
-                    Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::right)->H(_time::current,false));
-                }
-                if (cells[i][j].Boundary.boundary_edge!=edge::up && Neighbour(i,j,edge::up))
-                {
-                    Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::up)->H(_time::current,false));
-                    Res[j+nr*i] += -1/dz*(K(i,j,edge::up));
-                }
-                if (cells[i][j].Boundary.boundary_edge!=edge::down && Neighbour(i,j,edge::down))
-                {   Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::down)->H(_time::current,false));
-                    Res[j+nr*i] += 1/dz*(K(i,j,edge::down));
-                }
-
+                Res[j+nr*i] = cells[i][j].C(_time::current) - Neighbour(i,j, cells[i][j].Boundary.boundary_edge,true)->C(_time::current);
             }
 
         }
     }
 
     if (resetstatevariables)
-    {   SetStateVariable(X_old);
+    {   SetStateVariable_TR(X_old);
         UpdateH();
     }
     return Res;
@@ -298,7 +275,12 @@ CVector_arma Grid::GetStateVariable_TR(const _time &t) const
     CVector_arma X(nr*nz);
     for (unsigned int i=0; i<nz; i++)
         for (unsigned int j=0; j<nr; j++)
-            X[j+nr*i] = cells[i][j].getValue(prop::C);
+        {   if (t == _time::current)
+                X[j+nr*i] = cells[i][j].getValue(prop::C);
+            else
+                X[j+nr*i] = cells[i][j].getValue(prop::C_past);
+        }
+
 
     return X;
 }
@@ -444,9 +426,24 @@ CMatrix_arma Grid::Jacobian(const CVector_arma &X, const double &dt)
     return M;
 }
 
+CMatrix_arma Grid::Jacobian_TR(const CVector_arma &X, const double &dt)
+{
+    CVector_arma F_base = Residual_TR(X,dt,true);
+    CMatrix_arma M(X.getsize(),X.getsize());
+    for (unsigned int i=0; i< X.getsize(); i++)
+    {
+        CVector_arma X1 = X;
+        X1[i]+=1e-6;
+        CVector_arma F1 = Residual_TR(X1,dt, true);
+        for (unsigned int j=0; j<X.num; j++)
+            M(j,i) = (F1[j]-F_base[j])/1e-6;
+    }
+    return M;
+}
+
 bool Grid::OneStepSolve_no_lamba_correction(const double &dt)
 {
-    CVector_arma X = GetStateVariable();
+    CVector_arma X = GetStateVariable(_time::past);
     CVector_arma X0 = X;
     CVector_arma Res = Residual(X,dt);
     double err_0 = Res.norm2();
@@ -486,6 +483,51 @@ bool Grid::OneStepSolve_no_lamba_correction(const double &dt)
 
     SetStateVariable(X);
     Solution_State.err = err;
+    return true;
+}
+
+bool Grid::OneStepSolve_TR(const double &dt)
+{
+    CVector_arma X = GetStateVariable_TR(_time::past);
+    CVector_arma X0 = X;
+    CVector_arma Res = Residual_TR(X,dt);
+    double err_0 = Res.norm2();
+    double err=err_0*10;
+    Solution_State.number_of_iterations_TR = 0;
+
+    while (err/(err_0+dt)*0>1e-3 || err>1e-6)
+    {
+        Solution_State.lambda_TR = 1;
+
+        CMatrix_arma J = Jacobian_TR(X,dt);
+        CVector_arma dx = Res/J;
+
+        if (dx.num != X.num)
+        {
+            Solution_State.err = err;
+            return false;
+        }
+
+        X.writetofile("X_pre_TR.txt");
+        X-= Solution_State.lambda_TR*dx;
+        X.writetofile("X_TR.txt");
+        dx.writetofile("dx_TR.txt");
+
+        Res = Residual_TR(X,dt,true);
+        Res.writetofile("Res_TR.txt");
+        err=Res.norm2();
+
+        Solution_State.number_of_iterations_TR ++;
+        if (Solution_State.number_of_iterations_TR>Solution_State.max_iterations || !(err==err))
+        {
+            cout<<"Transport Interations: "<<Solution_State.number_of_iterations_TR<<", Error: "<<err<< ",Ini Error:"<< err_0<<" dt: "<<dt<< endl;
+            SetStateVariable_TR(X0);
+            return false;
+        }
+    }
+
+    SetStateVariable_TR(X);
+    Solution_State.err_TR = err;
     return true;
 }
 
@@ -622,23 +664,30 @@ bool Grid::OneStepSolveLM(const double &dt)
     return true;
 }
 
-bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const double &write_interval)
+bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const double &write_interval, bool transport)
 {
     Solution_State.t = t0;
     Solution_State.dt = dt0;
     Well_Water_Depth.append(Solution_State.t,well_H);
     CMatrix snapshot = Theta(_time::past);
     results.push_back(snapshot);
+    if (transport)
+    {   CMatrix snapshot_TR = C(_time::past);
+        concentrations.push_back(snapshot_TR);
+    }
     while (Solution_State.t + Solution_State.dt<t_end)
     {
         bool res = false;
+        bool res_TR = false;
         if (Solution_State.Solution_Method == _solution_state::_solution_method::LM)
             res = OneStepSolveLM(Solution_State.dt);
         else if (Solution_State.Solution_Method == _solution_state::_solution_method::NR)
             res = OneStepSolve(Solution_State.dt);
         else
             res = OneStepSolve_no_lamba_correction(Solution_State.dt);
-        if (!res)
+        if (transport && res)
+            res_TR = OneStepSolve_TR(Solution_State.dt);
+        if (!res || !(res_TR && transport))
         {
             Solution_State.dt*=Solution_State.dt_scale_factor_fail;
             if (Solution_State.dt<Solution_State.min_time_step)
@@ -648,9 +697,25 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
         {
             if (floor(Solution_State.t/write_interval)<floor((Solution_State.t+Solution_State.dt)/write_interval))
             {
-                double write_time = floor((Solution_State.t+Solution_State.dt)/write_interval)*write_interval;
-                CMatrix snapshot = ((write_time-Solution_State.t)*Theta(_time::past) + (Solution_State.t+Solution_State.dt-write_time)*Theta(_time::current))/Solution_State.dt;
-                results.push_back(snapshot);
+                int write_step1 = floor((Solution_State.t)/write_interval+1);
+                int write_step2 = floor((Solution_State.t+Solution_State.dt)/write_interval);
+                //double write_time1 = floor((Solution_State.t)/write_interval+1)*write_interval;
+                //double write_time2 = floor((Solution_State.t+Solution_State.dt)/write_interval)*write_interval;
+                for (int write_step = write_step1; write_step<=write_step2; write_step+=1)
+                {
+                    CMatrix snapshot = ((write_interval*write_step-Solution_State.t)*Theta(_time::current) + (Solution_State.t+Solution_State.dt-write_interval*write_step)*Theta(_time::past))/Solution_State.dt;
+
+                    results.push_back(snapshot);
+                    if (transport)
+                    {   C(_time::past).writetofile("C__past_matrix.txt");
+                        C(_time::current).writetofile("C_current_matrix.txt");
+                        CMatrix snapshotC = ((write_interval*write_step-Solution_State.t)*C(_time::current) + (Solution_State.t+Solution_State.dt-write_interval*write_step)*C(_time::past))/Solution_State.dt;
+                        snapshotC.writetofile("snapshot.txt");
+                        concentrations.push_back(snapshotC);
+                    }
+                    cout<<"Results being recorded @ " << Solution_State.t << "," << write_interval*write_step <<","<< Solution_State.t + Solution_State.dt << endl;
+                }
+
             }
             Solution_State.t += Solution_State.dt;
             Well_Water_Depth.append(Solution_State.t,well_H);
@@ -670,6 +735,11 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
         }
         CVector_arma X = GetStateVariable(_time::current);
         SetStateVariable(X,_time::past);
+        if (transport)
+        {
+            CVector_arma X_TR = GetStateVariable_TR(_time::current);
+            SetStateVariable_TR(X_TR,_time::past);
+        }
         Outflow.append(Solution_State.t,CalcOutFlow());
         cout<< name << ":" << Solution_State.t/t_end*100 << "% done!" << endl;
         //cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<", Lamda = "<<Solution_State.lambda <<std::endl;
@@ -1016,6 +1086,16 @@ void Grid::WriteResults(const std::string &filename)
     }
 }
 
+void Grid::WriteResultsC(const std::string &filename)
+{
+    for (unsigned k=0; k<results.size(); k++)
+    {
+        std::string name = aquiutils::split(filename,'.')[0]+"_"+aquiutils::numbertostring(k+1,3)+".vtp";
+        write_to_vtp(name,concentrations[k],"C",1);
+    }
+}
+
+
 void Grid::WriteResults(const std::string &quan, const std::string &filename)
 {
     for (unsigned k=0; k<results.size(); k++)
@@ -1057,6 +1137,17 @@ void Grid::UpdateH()
 
 }
 
+void Grid::UpdateC()
+{
+    CMatrix out(nz,nr);
+    for (unsigned int i = 0; i < cells.size(); i++)
+        for (unsigned int j = 0; j < cells[i].size(); j++)
+        {
+            cells[i][j].SetValue(prop::C_past,cells[i][j].C(_time::current));
+        }
+
+}
+
 CMatrix Grid::Theta(_time t)
 {
     CMatrix out(nz,nr);
@@ -1064,6 +1155,18 @@ CMatrix Grid::Theta(_time t)
         for (unsigned int j = 0; j < cells[i].size(); j++)
         {
             out[i][j] = cells[i][j].Theta(t);
+        }
+    return out;
+}
+
+
+CMatrix Grid::C(_time t)
+{
+    CMatrix out(nz,nr);
+    for (unsigned int i = 0; i < cells.size(); i++)
+        for (unsigned int j = 0; j < cells[i].size(); j++)
+        {
+            out[i][j] = cells[i][j].C(t);
         }
     return out;
 }
@@ -1114,3 +1217,10 @@ double Grid::Min(const std::string &quan)
     return out;
 }
 
+double upstream(const double &x1, const double &x2, const double &val1, const double &val2)
+{
+    if (x1>x2)
+        return val1;
+    else
+        return val2;
+}

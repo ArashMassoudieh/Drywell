@@ -268,7 +268,7 @@ CONFIG(debug, debug|release) {
     !macx: QMAKE_CXXFLAGS *= "-Xpreprocessor -fopenmp"
     !macx: QMAKE_LFLAGS +=  -fopenmp
     !macx: LIBS += -lgomp -lpthread
-    LIBS += -lpthread
+    LIBS += -lgomp -lpthread
     DEFINES += NO_OPENMP DEBUG
 
 } else {

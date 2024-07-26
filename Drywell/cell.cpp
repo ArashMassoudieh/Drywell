@@ -20,6 +20,8 @@ void Cell::InitiateQuans()
     quants["epsilon"] = 0.01;
     */
     quants.theta = 0.25;
+    quants.C = 0;
+    quants.C_past = 0;
     quants.theta_past = 0.2;
     quants.theta_s = 0.4;
     quants.theta_r = 0.03;

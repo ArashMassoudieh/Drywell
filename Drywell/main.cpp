@@ -198,6 +198,9 @@ int main()
         G.WaterDepth().make_uniform(0.01).writefile(Results_Folder + "/waterdepth.csv");
         G.TotalWaterInSoil().make_uniform(0.01).writefile(Results_Folder + "/totalwaterinsoil.csv");
         G.TotalWaterInWell().make_uniform(0.01).writefile(Results_Folder + "/totalwaterinwell.csv");
+    cout<<"9.5"<<endl;
+        G.OutFlow().make_uniform(0.01).writefile(Results_Folder + "/Recharge.csv");
+        G.OutFlux().make_uniform(0.01).writefile(Results_Folder + "/TTD.csv");
     cout<<"done!"<<endl;
     QTime end_time = QTime::currentTime();
     cout<<"End time = " + end_time.toString().toStdString();

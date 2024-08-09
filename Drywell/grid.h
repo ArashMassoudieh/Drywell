@@ -49,6 +49,7 @@ public:
     CVector_arma Residual(const CVector_arma &X, const double &dt, bool resetstatevariables = false);
     CVector_arma Residual_TR(const CVector_arma &X, const double &dt, bool resetstatevariables = false);
     double CalcOutFlow();
+    double CalcOutFlux();
     void SetStateVariable(const CVector_arma &X,const _time &t=_time::current);
     void SetStateVariable_TR(const CVector_arma &X,const _time &t=_time::current);
     CMatrix_arma Jacobian(const CVector_arma &X, const double &dt);
@@ -101,6 +102,10 @@ public:
     {
         return Outflow;
     }
+    CTimeSeries<double> &OutFlux()
+    {
+        return Outflux;
+    }
     bool AssignProperty(PropertyGenerator *prop);
     void SetName(std::string _name) {name = _name;};
 private:
@@ -125,6 +130,7 @@ private:
     CTimeSeries<double> inflow;
     CTimeSeries<double> Well_Water_Depth;
     CTimeSeries<double> Outflow;
+    CTimeSeries<double> Outflux;
     CTimeSeries<double> Total_Water_Content;
     CTimeSeries<double> Well_Water_Content;
     std::string name;

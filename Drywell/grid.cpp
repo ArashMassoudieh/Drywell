@@ -221,6 +221,21 @@ double Grid::CalcOutFlow()
     return out;
 }
 
+double Grid::CalcOutFlux()
+{
+    double out=0;
+    int i=nz-1;
+       for (unsigned int j=0; j<nr; j++)
+    {
+           if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
+           {
+               out += -1/dz*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current))*Neighbour(i,j,edge::up)->C(_time::current);
+               out += K(i,j,edge::up)*Neighbour(i,j,edge::up)->C(_time::current);
+           }
+    }
+    return out;
+}
+
 void Grid::SetStateVariable(const CVector_arma &X,const _time &t)
 {
     for (unsigned int i=0; i<nz; i++)
@@ -707,9 +722,7 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
 
                     results.push_back(snapshot);
                     if (transport)
-                    {   C(_time::past).writetofile("C__past_matrix.txt");
-                        C(_time::current).writetofile("C_current_matrix.txt");
-                        CMatrix snapshotC = ((write_interval*write_step-Solution_State.t)*C(_time::current) + (Solution_State.t+Solution_State.dt-write_interval*write_step)*C(_time::past))/Solution_State.dt;
+                    {   CMatrix snapshotC = ((write_interval*write_step-Solution_State.t)*C(_time::current) + (Solution_State.t+Solution_State.dt-write_interval*write_step)*C(_time::past))/Solution_State.dt;
                         snapshotC.writetofile("snapshot.txt");
                         concentrations.push_back(snapshotC);
                     }
@@ -741,6 +754,10 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
             SetStateVariable_TR(X_TR,_time::past);
         }
         Outflow.append(Solution_State.t,CalcOutFlow());
+        if (transport)
+        {
+            Outflux.append(Solution_State.t,CalcOutFlux());
+        }
         cout<< name << ":" << Solution_State.t/t_end*100 << "% done!" << endl;
         //cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<", Lamda = "<<Solution_State.lambda <<std::endl;
     }
@@ -1081,7 +1098,7 @@ void Grid::WriteResults(const std::string &filename)
 {
     for (unsigned k=0; k<results.size(); k++)
     {
-        std::string name = aquiutils::split(filename,'.')[0]+"_"+aquiutils::numbertostring(k+1,3)+".vtp";
+        std::string name = aquiutils::split(filename,'.')[0]+"_"+aquiutils::numbertostring(k+1,4)+".vtp";
         write_to_vtp(name,results[k],"Moisture Content",1);
     }
 }
@@ -1090,7 +1107,7 @@ void Grid::WriteResultsC(const std::string &filename)
 {
     for (unsigned k=0; k<results.size(); k++)
     {
-        std::string name = aquiutils::split(filename,'.')[0]+"_"+aquiutils::numbertostring(k+1,3)+".vtp";
+        std::string name = aquiutils::split(filename,'.')[0]+"_"+aquiutils::numbertostring(k+1,4)+".vtp";
         write_to_vtp(name,concentrations[k],"C",1);
     }
 }

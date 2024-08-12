@@ -50,6 +50,8 @@ public:
     CVector_arma Residual_TR(const CVector_arma &X, const double &dt, bool resetstatevariables = false);
     double CalcOutFlow();
     double CalcOutFlux();
+    double CalcOutFlow_diff();
+    double CalcOutFlow_adv();
     void SetStateVariable(const CVector_arma &X,const _time &t=_time::current);
     void SetStateVariable_TR(const CVector_arma &X,const _time &t=_time::current);
     CMatrix_arma Jacobian(const CVector_arma &X, const double &dt);
@@ -79,7 +81,9 @@ public:
     void UpdateC();
     CMatrix Se();
     double TotalWaterContent();
+    double TotalPollutantMass();
     double WellWaterContent();
+    double WellPollutantMass();
     CMatrix QuanMatrix(const std::string &quan);
     CMatrix Theta(_time t);
     CMatrix C(_time t);
@@ -98,13 +102,30 @@ public:
     {
         return Well_Water_Content;
     }
+    CTimeSeries<double> &TotalMassInSoil()
+    {
+        return Total_Mass_in_Soil;
+    }
+    CTimeSeries<double> &TotalMassInWell()
+    {
+        return Total_Mass_in_Well;
+    }
+
     CTimeSeries<double> &OutFlow()
     {
         return Outflow;
     }
-    CTimeSeries<double> &OutFlux()
+    CTimeSeries<double> &OutFlow_diff()
     {
-        return Outflux;
+        return Outflow_diff;
+    }
+    CTimeSeries<double> &OutFlow_adv()
+    {
+        return Outflow_adv;
+    }
+    CTimeSeries<double> &CumOutFlux()
+    {
+        return CumOutflux;
     }
     bool AssignProperty(PropertyGenerator *prop);
     void SetName(std::string _name) {name = _name;};
@@ -124,15 +145,20 @@ private:
     CVector_arma GetStateVariable_TR(const _time &t=_time::current) const;
     double well_H = 0;
     double well_H_old = 0;
-    double r_w;
+    double r_w = 0;
     double beta;
     double alpha;
     CTimeSeries<double> inflow;
     CTimeSeries<double> Well_Water_Depth;
     CTimeSeries<double> Outflow;
-    CTimeSeries<double> Outflux;
+    CTimeSeries<double> Outflow_diff;
+    CTimeSeries<double> Outflow_adv;
+    CTimeSeries<double> CumOutflux;
+    double Cumulative_Outflux = 0;
     CTimeSeries<double> Total_Water_Content;
     CTimeSeries<double> Well_Water_Content;
+    CTimeSeries<double> Total_Mass_in_Soil;
+    CTimeSeries<double> Total_Mass_in_Well;
     std::string name;
 
 };

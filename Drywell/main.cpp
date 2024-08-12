@@ -42,14 +42,14 @@ int main()
     {   ModelParameters case1;
         case1.alpha = "30";
         case1.n = "2";
-        case1.dg = "0.5";
-        case1.rw = "0";
-        case1.folder = "Realization_" + QString::number(i+1);
+        case1.dg = QString::number(static_cast<double>(i)/10);
+        case1.rw = "0"; //mean 0.025 radius of the well over the depth of the well
+        case1.folder = "dg_" + QString::number(static_cast<double>(i)/10);
         parameter_set[case1.folder] = case1;
     }*/
 
 
-
+ // alpha=30, n=2, dg=0.5, rw=0
     /*
     ModelParameters case2;
     case2.alpha = "10";
@@ -85,9 +85,9 @@ int main()
     */
     enum class _mode {homogeneous, heterogeneous};
     _mode mode = _mode::homogeneous;
-    int nz=20;
-    int nr=20;
-//omp_set_num_threads(8);
+    int nz=10;
+    int nr=10;
+omp_set_num_threads(8);
 
 //#pragma omp parallel for
     for (int i=0; i<parameter_set.count(); i++)
@@ -98,9 +98,9 @@ int main()
         G.SetName(it->folder.toStdString());
         QTime start_time = QTime::currentTime();
         cout<<it->folder.toStdString() + ", Start time = " + start_time.toString().toStdString()<<endl;
-        std::string Results_Folder = "/home/arash/Projects/Drywell_Result/Homogeneous/" + it->folder.toStdString();
+        std::string Results_Folder = "/home/arash/Projects/Drywell_Result/Test/" + it->folder.toStdString();
         //std::string Results_Folder = "F:/Projects/Drywell_Result";
-        QDir dir("/home/arash/Projects/Drywell_Result/Homogeneous");
+        QDir dir("/home/arash/Projects/Drywell_Result/Test");
         std::string SoilDataFolder = "/home/arash/Projects/Drywell_Result/Heterogeneous";
         if (!dir.exists(it->folder))
         {
@@ -161,7 +161,8 @@ int main()
         {
             G.cell(0,j)->Boundary.type = boundaryType::symmetry;
             G.cell(0,j)->Boundary.boundary_edge = edge::up;
-            G.cell(nz-1,j)->Boundary.type = boundaryType::fixedmoisture;
+            //G.cell(nz-1,j)->Boundary.type = boundaryType::fixedmoisture;
+            G.cell(nz-1,j)->Boundary.type = boundaryType::symmetry;
             G.cell(nz-1,j)->Boundary.value = 0.4;
         }
     cout<<"7"<<std::endl;
@@ -181,8 +182,11 @@ int main()
         G.SetProp("well_H_old","0");
     cout<<"7.4"<<std::endl;
         G.SetProp("r_w",it->rw.toStdString());
+    cout<<"7.5"<<std::endl;
+        G.SetProp("C","1");
+        G.SetProp("C_past","1");
     cout<<"8"<<std::endl;
-        G.Solve(0,0.000001,10,0.005, true);
+        G.Solve(0,0.000001,10,0.05, true);
     cout<<"9"<<std::endl;
         G.ExtractMoisture(1,0).writefile(Results_Folder + "/moist_well.csv");
     cout<<"9"<<std::endl;
@@ -198,9 +202,13 @@ int main()
         G.WaterDepth().make_uniform(0.01).writefile(Results_Folder + "/waterdepth.csv");
         G.TotalWaterInSoil().make_uniform(0.01).writefile(Results_Folder + "/totalwaterinsoil.csv");
         G.TotalWaterInWell().make_uniform(0.01).writefile(Results_Folder + "/totalwaterinwell.csv");
+        G.TotalMassInSoil().make_uniform(0.01).writefile(Results_Folder + "/totalmassinsoil.csv");
+        G.TotalMassInWell().make_uniform(0.01).writefile(Results_Folder + "/totalmassinwell.csv");
     cout<<"9.5"<<endl;
         G.OutFlow().make_uniform(0.01).writefile(Results_Folder + "/Recharge.csv");
-        G.OutFlux().make_uniform(0.01).writefile(Results_Folder + "/TTD.csv");
+        G.OutFlow_diff().make_uniform(0.01).writefile(Results_Folder + "/Recharge_diff.csv");
+        G.OutFlow_adv().make_uniform(0.01).writefile(Results_Folder + "/Recharge_adv.csv");
+        G.CumOutFlux().make_uniform(0.01).writefile(Results_Folder + "/TTD.csv");
     cout<<"done!"<<endl;
     QTime end_time = QTime::currentTime();
     cout<<"End time = " + end_time.toString().toStdString();

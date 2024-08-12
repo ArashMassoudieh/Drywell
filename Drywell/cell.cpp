@@ -14,7 +14,7 @@ void Cell::InitiateQuans()
     quants["theta_past"] = 0.2;
     quants["theta_s"] = 0.4;
     quants["theta_r"] = 0.03;
-    quants["alpha"] = 90;
+    quants["alpha"] = 30;
     quants["n"] = 1.5;
     quants["Ks"] = 1;
     quants["epsilon"] = 0.01;

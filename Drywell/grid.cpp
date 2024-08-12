@@ -58,7 +58,7 @@ double Grid::TotalWaterContent()
 {
     double out = 0;
     for (unsigned int i=0; i<nz; i++)
-        for (unsigned int j=0; j<nr; j++)
+        for (unsigned int j=1; j<nr-1; j++)
         {
             double r = (j+0.5)*dr+r_w;
             double volume = 2*pi*r*dr*dz;
@@ -66,10 +66,31 @@ double Grid::TotalWaterContent()
         }
     return out;
 }
+
+double Grid::TotalPollutantMass()
+{
+    double out = 0;
+    for (unsigned int i=0; i<nz; i++)
+        for (unsigned int j=0; j<nr; j++)
+        {
+            double r = (j+0.5)*dr+r_w;
+            double volume = 2*pi*r*dr*dz;
+            out+=cell(i,j)->Theta(_time::current)*volume*cell(i,j)->C(_time::current);
+        }
+    return out;
+}
+
 double Grid::WellWaterContent()
 {
     return pi*pow(r_w+dr/2,2)*well_H;
 }
+
+
+double Grid::WellPollutantMass()
+{
+    return pi*pow(r_w+dr/2,2)*(1+well_H);
+}
+
 
 CVector_arma Grid::Residual(const CVector_arma &X, const double &dt, bool resetstatevariables)
 {
@@ -102,8 +123,10 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt, bool resets
             else if (cells[i][j].Boundary.type==boundaryType::fixedpressure)
             {
                 if (interface_length>0)
-                {   Res[j+nr*i] = cells[i][j].H(_time::current,false) - std::max(well_H+(i+1)*dz,0.0)*(interface_length/dz);
-                    Res[nz*nr]+=2*interface_length*pi*(r_w+dr/2)*K(i,j,edge::right)*(std::max(well_H+(i+1)*dz,0.0)-Neighbour(i,j,edge::right)->H(_time::current,false));
+                {
+                    double pressure_head = std::max(well_H+(i+1)*dz,0.0)*(interface_length/dz) + (1.0-interface_length/dz)*Neighbour(i,j,edge::right)->H(_time::current,false);
+                    Res[j+nr*i] = cells[i][j].H(_time::current,false) - pressure_head;
+                    Res[nz*nr]+=2/dr*pi*(r_w+dr/2)*K(i,j,edge::right)*(pressure_head-Neighbour(i,j,edge::right)->H(_time::current,false));
                 }
                 else
                 {
@@ -175,7 +198,7 @@ CVector_arma Grid::Residual_TR(const CVector_arma &X, const double &dt, bool res
             }
             else if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
             {
-                Res[j+nr*i] = cells[i][j].C(_time::current) - 0;
+                Res[j+nr*i] = cells[i][j].C(_time::current) - 1;
             }
             else if (cells[i][j].Boundary.type==boundaryType::fixedpressure)
             {
@@ -214,12 +237,44 @@ double Grid::CalcOutFlow()
     {
            if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
            {
-               out += -1/dz*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current));
-               out += K(i,j,edge::up);
+               double r = (j+0.5)*dr+r_w;
+               out += -1/dz*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current))*(2*pi*r*dr);
+               out += K(i,j,edge::up)*(2*pi*r*dr);
            }
     }
     return out;
 }
+
+double Grid::CalcOutFlow_diff()
+{
+    double out=0;
+    int i=nz-1;
+       for (unsigned int j=0; j<nr; j++)
+    {
+           if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
+           {
+               double r = (j+0.5)*dr+r_w;
+               out += -1/dz*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current))*(2*pi*r*dr);
+           }
+    }
+    return out;
+}
+
+double Grid::CalcOutFlow_adv()
+{
+    double out=0;
+    int i=nz-1;
+       for (unsigned int j=0; j<nr; j++)
+    {
+           if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
+           {
+               double r = (j+0.5)*dr+r_w;
+               out += K(i,j,edge::up)*(2*pi*r*dr);
+           }
+    }
+    return out;
+}
+
 
 double Grid::CalcOutFlux()
 {
@@ -229,8 +284,8 @@ double Grid::CalcOutFlux()
     {
            if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
            {
-               out += -1/dz*K(i,j,edge::up)*(cells[i][j].H(_time::current)-Neighbour(i,j,edge::up)->H(_time::current))*Neighbour(i,j,edge::up)->C(_time::current);
-               out += K(i,j,edge::up)*Neighbour(i,j,edge::up)->C(_time::current);
+               double r = (j+0.5)*dr+r_w;
+               out += -1/dz*K(i,j,edge::up)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::up)->H(_time::current,false)-dz)*upstream(cells[i][j].H(_time::current,false),Neighbour(i,j,edge::up)->H(_time::current,false)+dz,cells[i][j].C(_time::current),Neighbour(i,j,edge::up)->C(_time::current))*(2*pi*r*dr);
            }
     }
     return out;
@@ -702,7 +757,9 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
             res = OneStepSolve_no_lamba_correction(Solution_State.dt);
         if (transport && res)
             res_TR = OneStepSolve_TR(Solution_State.dt);
-        if (!res || !(res_TR && transport))
+        else
+            res_TR = true;
+        if (!res || !res_TR)
         {
             Solution_State.dt*=Solution_State.dt_scale_factor_fail;
             if (Solution_State.dt<Solution_State.min_time_step)
@@ -754,9 +811,15 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
             SetStateVariable_TR(X_TR,_time::past);
         }
         Outflow.append(Solution_State.t,CalcOutFlow());
+        Outflow_adv.append(Solution_State.t,CalcOutFlow_adv());
+        Outflow_diff.append(Solution_State.t,CalcOutFlow_diff());
         if (transport)
         {
-            Outflux.append(Solution_State.t,CalcOutFlux());
+            Cumulative_Outflux += CalcOutFlux()*Solution_State.dt/(pi*pow(r_w+dr/2,2));
+            CumOutflux.append(Solution_State.t,Cumulative_Outflux);
+            Total_Mass_in_Soil.append(Solution_State.t,TotalPollutantMass());
+            Total_Mass_in_Well.append(Solution_State.t,WellPollutantMass());
+
         }
         cout<< name << ":" << Solution_State.t/t_end*100 << "% done!" << endl;
         //cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<", Lamda = "<<Solution_State.lambda <<std::endl;

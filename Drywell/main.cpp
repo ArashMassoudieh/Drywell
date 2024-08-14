@@ -28,13 +28,13 @@ int main()
 {
     QMap<QString, ModelParameters> parameter_set;
 
-    for (int i=1; i<2; i++)
+    for (int i=1; i<10; i++)
     {   ModelParameters case1;
-        case1.alpha = QString::number(i*5);
-        case1.n = "2";
+        case1.alpha = "30";
+        case1.n = QString::number(i*0.2+1.2);
         case1.dg = "0.5";
-        case1.rw = "0.1";
-        case1.folder = "Alpha_" + QString::number(i*5);
+        case1.rw = "0";
+        case1.folder = "n_" + QString::number((i*0.2+1.2)*10);
         parameter_set[case1.folder] = case1;
     }
 
@@ -100,10 +100,10 @@ omp_set_num_threads(8);
         G.SetName(it->folder.toStdString());
         QTime start_time = QTime::currentTime();
         cout<<it->folder.toStdString() + ", Start time = " + start_time.toString().toStdString()<<endl;
-        std::string Results_Folder = "/home/arash/Projects/Drywell_Result/Test/" + it->folder.toStdString();
+        std::string Results_Folder = "/mnt/3rd900/Projects/Drywell_Result/Homogeneous/Test/" + it->folder.toStdString();
         //std::string Results_Folder = "F:/Projects/Drywell_Result";
-        QDir dir("/home/arash/Projects/Drywell_Result/Test");
-        std::string SoilDataFolder = "/home/arash/Projects/Drywell_Result/Heterogeneous";
+        QDir dir("/mnt/3rd900/Projects/Drywell_Result/Homogeneous/Test");
+        std::string SoilDataFolder = "/mnt/3rd900/Projects/Drywell_Result/Heterogeneous";
         if (!dir.exists(it->folder))
         {
             bool res = dir.mkdir(it->folder);
@@ -193,7 +193,7 @@ omp_set_num_threads(8);
         //G.SetProp(5,"C","1");
         //G.SetProp(5,"C_past","1");
     cout<<"8"<<std::endl;
-        G.Solve(0,0.000001,t_end,dt0, true);
+        G.Solve(0,0.000001,1,0.005, true);
     cout<<"9"<<std::endl;
         G.ExtractMoisture(1,0).writefile(Results_Folder + "/moist_well.csv");
     cout<<"9"<<std::endl;

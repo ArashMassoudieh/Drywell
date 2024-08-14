@@ -7,8 +7,8 @@ DEFINES += _arma
 DEFINES += use_VTK
 CONFIG += use_VTK
 
-CONFIG += Arash
-DEFINES += Arash
+CONFIG += PowerEdge
+DEFINES += PowerEdge
 
 PowerEdge
 {
@@ -24,7 +24,9 @@ Arash {
     VTKBUILDPATH = /home/arash/Projects/VTK/VTK-build
     VTKHEADERPATH = /home/arash/Projects/VTK
     VTK_V = -9.0
-} else {
+}
+
+Khiem {
     VTKBUILDPATH = /home/arash/Project_Khiem/VTK/VTK-build
     VTKHEADERPATH = /home/arash/Project_Khiem/VTK
     VTK_V = -9.3

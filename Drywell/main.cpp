@@ -33,7 +33,7 @@ int main()
         case1.alpha = QString::number(i*5);
         case1.n = "2";
         case1.dg = "0.5";
-        case1.rw = "0";
+        case1.rw = "0.1";
         case1.folder = "Alpha_" + QString::number(i*5);
         parameter_set[case1.folder] = case1;
     }
@@ -85,8 +85,10 @@ int main()
     */
     enum class _mode {homogeneous, heterogeneous};
     _mode mode = _mode::homogeneous;
-    int nz=10;
-    int nr=10;
+    int nz=20;
+    int nr=20;
+    double dt0 = 0.001;
+    double t_end = 1;
 omp_set_num_threads(8);
 
 //#pragma omp parallel for
@@ -161,8 +163,8 @@ omp_set_num_threads(8);
         {
             G.cell(0,j)->Boundary.type = boundaryType::symmetry;
             G.cell(0,j)->Boundary.boundary_edge = edge::up;
-            //G.cell(nz-1,j)->Boundary.type = boundaryType::fixedmoisture;
-            G.cell(nz-1,j)->Boundary.type = boundaryType::symmetry;
+            G.cell(nz-1,j)->Boundary.type = boundaryType::fixedmoisture;
+            //G.cell(nz-1,j)->Boundary.type = boundaryType::symmetry;
             G.cell(nz-1,j)->Boundary.value = 0.4;
         }
     cout<<"7"<<std::endl;
@@ -173,6 +175,9 @@ omp_set_num_threads(8);
     {   G.SetProp("alpha",it->alpha.toStdString());
         G.SetProp("n",it->n.toStdString());
     }
+    //G.SetProp(5,"theta","0.4");
+    //G.SetProp(5,"theta_past","0.4");
+
 
     cout<<"7.1"<<std::endl;
         G.SetProp("inflow", "/home/arash/Projects/Drywell_Result/inflow_zero.txt");
@@ -183,10 +188,12 @@ omp_set_num_threads(8);
     cout<<"7.4"<<std::endl;
         G.SetProp("r_w",it->rw.toStdString());
     cout<<"7.5"<<std::endl;
-        G.SetProp("C","1");
-        G.SetProp("C_past","1");
+        G.SetProp("C","0");
+        G.SetProp("C_past","0");
+        //G.SetProp(5,"C","1");
+        //G.SetProp(5,"C_past","1");
     cout<<"8"<<std::endl;
-        G.Solve(0,0.000001,10,0.05, true);
+        G.Solve(0,0.000001,t_end,dt0, true);
     cout<<"9"<<std::endl;
         G.ExtractMoisture(1,0).writefile(Results_Folder + "/moist_well.csv");
     cout<<"9"<<std::endl;
@@ -199,16 +206,16 @@ omp_set_num_threads(8);
     cout<<"9.3"<<std::endl;
         G.WriteResults("n", Results_Folder + "/n.vtp");
     cout<<"9.4"<<endl;
-        G.WaterDepth().make_uniform(0.01).writefile(Results_Folder + "/waterdepth.csv");
-        G.TotalWaterInSoil().make_uniform(0.01).writefile(Results_Folder + "/totalwaterinsoil.csv");
-        G.TotalWaterInWell().make_uniform(0.01).writefile(Results_Folder + "/totalwaterinwell.csv");
-        G.TotalMassInSoil().make_uniform(0.01).writefile(Results_Folder + "/totalmassinsoil.csv");
-        G.TotalMassInWell().make_uniform(0.01).writefile(Results_Folder + "/totalmassinwell.csv");
+        G.WaterDepth().make_uniform(dt0).writefile(Results_Folder + "/waterdepth.csv");
+        G.TotalWaterInSoil().make_uniform(dt0).writefile(Results_Folder + "/totalwaterinsoil.csv");
+        G.TotalWaterInWell().make_uniform(dt0).writefile(Results_Folder + "/totalwaterinwell.csv");
+        G.TotalMassInSoil().make_uniform(dt0).writefile(Results_Folder + "/totalmassinsoil.csv");
+        G.TotalMassInWell().make_uniform(dt0).writefile(Results_Folder + "/totalmassinwell.csv");
     cout<<"9.5"<<endl;
-        G.OutFlow().make_uniform(0.01).writefile(Results_Folder + "/Recharge.csv");
-        G.OutFlow_diff().make_uniform(0.01).writefile(Results_Folder + "/Recharge_diff.csv");
-        G.OutFlow_adv().make_uniform(0.01).writefile(Results_Folder + "/Recharge_adv.csv");
-        G.CumOutFlux().make_uniform(0.01).writefile(Results_Folder + "/TTD.csv");
+        G.OutFlow().make_uniform(dt0).writefile(Results_Folder + "/Recharge.csv");
+        G.OutFlow_diff().make_uniform(dt0).writefile(Results_Folder + "/Recharge_diff.csv");
+        G.OutFlow_adv().make_uniform(dt0).writefile(Results_Folder + "/Recharge_adv.csv");
+        G.CumOutFlux().make_uniform(dt0).writefile(Results_Folder + "/TTD.csv");
     cout<<"done!"<<endl;
     QTime end_time = QTime::currentTime();
     cout<<"End time = " + end_time.toString().toStdString();

@@ -90,6 +90,8 @@ public:
     std::vector<CMatrix> results;
     std::vector<CMatrix> concentrations;
     bool SetProp(const std::string &propname, const std::string &value);
+    bool SetProp(int i, int j, const std::string &propname, const std::string &value);
+    bool SetProp(int i, const std::string &propname, const std::string &value);
     CTimeSeries<double> &WaterDepth()
     {
         return Well_Water_Depth;

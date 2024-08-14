@@ -57,8 +57,8 @@ Grid::Grid(int _nz, int _nr, double depth, double radius)
 double Grid::TotalWaterContent()
 {
     double out = 0;
-    for (unsigned int i=0; i<nz; i++)
-        for (unsigned int j=1; j<nr-1; j++)
+    for (unsigned int i=0; i<nz-1; i++)
+        for (unsigned int j=0; j<nr; j++)
         {
             double r = (j+0.5)*dr+r_w;
             double volume = 2*pi*r*dr*dz;
@@ -70,7 +70,7 @@ double Grid::TotalWaterContent()
 double Grid::TotalPollutantMass()
 {
     double out = 0;
-    for (unsigned int i=0; i<nz; i++)
+    for (unsigned int i=0; i<nz-1; i++)
         for (unsigned int j=0; j<nr; j++)
         {
             double r = (j+0.5)*dr+r_w;
@@ -194,11 +194,11 @@ CVector_arma Grid::Residual_TR(const CVector_arma &X, const double &dt, bool res
                 Res[j+nr*i] += (r-dr/2)/(r*pow(dr,2))*K(i,j,edge::left)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::left)->H(_time::current,false))*upstream(cells[i][j].H(_time::current,false),Neighbour(i,j,edge::left)->H(_time::current,false),cells[i][j].C(_time::current),Neighbour(i,j,edge::left)->C(_time::current));
                 Res[j+nr*i] += (r+dr/2)/(r*pow(dr,2))*K(i,j,edge::right)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::right)->H(_time::current,false))*upstream(cells[i][j].H(_time::current,false),Neighbour(i,j,edge::right)->H(_time::current,false),cells[i][j].C(_time::current),Neighbour(i,j,edge::right)->C(_time::current));
                 Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::up)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::up)->H(_time::current,false)-dz)*upstream(cells[i][j].H(_time::current,false),Neighbour(i,j,edge::up)->H(_time::current,false)+dz,cells[i][j].C(_time::current),Neighbour(i,j,edge::up)->C(_time::current));
-                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::down)->H(_time::current,false)+dz)*upstream(cells[i][j].H(_time::current,false),Neighbour(i,j,edge::down)->H(_time::current,false)-dz,cells[i][j].C(_time::current),Neighbour(i,j,edge::up)->C(_time::current));
+                Res[j+nr*i] += 1/pow(dz,2)*K(i,j,edge::down)*(cells[i][j].H(_time::current,false)-Neighbour(i,j,edge::down)->H(_time::current,false)+dz)*upstream(cells[i][j].H(_time::current,false),Neighbour(i,j,edge::down)->H(_time::current,false)-dz,cells[i][j].C(_time::current),Neighbour(i,j,edge::down)->C(_time::current));
             }
             else if (cells[i][j].Boundary.type==boundaryType::fixedmoisture)
             {
-                Res[j+nr*i] = cells[i][j].C(_time::current) - 1;
+                Res[j+nr*i] = cells[i][j].C(_time::current);
             }
             else if (cells[i][j].Boundary.type==boundaryType::fixedpressure)
             {
@@ -824,6 +824,20 @@ bool Grid::Solve(const double &t0, const double &dt0, const double &t_end, const
         cout<< name << ":" << Solution_State.t/t_end*100 << "% done!" << endl;
         //cout<<Solution_State.t<<",dt="<<Solution_State.dt<<",itr="<<Solution_State.number_of_iterations<<",err="<<Solution_State.err<<", Lamda = "<<Solution_State.lambda <<std::endl;
     }
+    return true;
+}
+
+bool Grid::SetProp(int i, int j, const std::string &propname, const std::string &value)
+{
+    cells[i][j].SetValue(propname,aquiutils::atof(value));
+    return true;
+}
+
+
+bool Grid::SetProp(int i, const std::string &propname, const std::string &value)
+{
+    for (int j=0; j<nr; j++)
+        cells[i][j].SetValue(propname,aquiutils::atof(value));
     return true;
 }
 

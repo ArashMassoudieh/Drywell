@@ -7,8 +7,8 @@ DEFINES += _arma
 DEFINES += use_VTK
 CONFIG += use_VTK
 
-CONFIG += PowerEdge
-DEFINES += PowerEdge
+CONFIG += Arash
+DEFINES += Arash
 
 PowerEdge
 {

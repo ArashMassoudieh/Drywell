@@ -126,7 +126,10 @@ CVector_arma Grid::Residual(const CVector_arma &X, const double &dt, bool resets
                 {
                     double pressure_head = std::max(well_H+(i+1)*dz,0.0)*(interface_length/dz) + (1.0-interface_length/dz)*Neighbour(i,j,edge::right)->H(_time::current,false);
                     Res[j+nr*i] = cells[i][j].H(_time::current,false) - pressure_head;
-                    Res[nz*nr]+=2/dr*pi*(r_w+dr/2)*K(i,j,edge::right)*(pressure_head-Neighbour(i,j,edge::right)->H(_time::current,false));
+                    if (head_mode==_head_mode::falling)
+                        Res[nz*nr]+=2/dr*pi*(r_w+dr/2)*K(i,j,edge::right)*(pressure_head-Neighbour(i,j,edge::right)->H(_time::current,false));
+                    else
+                        Res[nz*nr]=well_H-well_H_old;
                 }
                 else
                 {
@@ -185,6 +188,7 @@ CVector_arma Grid::Residual_TR(const CVector_arma &X, const double &dt, bool res
     {
         double lower_el = -dz*(i+1);
         double interface_length = std::max(std::min(well_H - lower_el,dz),0.0);
+
         for (unsigned int j=0; j<nr; j++)
         {
             double r = (j+0.5)*dr+r_w;
@@ -520,7 +524,7 @@ bool Grid::OneStepSolve_no_lamba_correction(const double &dt)
     double err=err_0*10;
     Solution_State.number_of_iterations = 0;
 
-    while (err/(err_0+dt)*0>1e-3 || err>1e-6)
+    while (err/(err_0+dt)>1e-3 && err>1e-6)
     {
         Solution_State.lambda = 1;
 
@@ -880,6 +884,16 @@ bool Grid::SetProp(const std::string &propname, const std::string &value)
     else if (propname == "inflow")
     {
         inflow = CTimeSeries<double>(value);
+        return true;
+    }
+    else if (propname == "fixed_well_head")
+    {
+        fixed_well_head = aquiutils::atof(value);
+        return true;
+    }
+    else if (propname == "initial_well_concentration")
+    {
+        initial_well_concentration = aquiutils::atof(value);
         return true;
     }
     else

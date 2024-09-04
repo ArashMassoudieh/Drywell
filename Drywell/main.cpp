@@ -28,13 +28,13 @@ int main()
 {
     QMap<QString, ModelParameters> parameter_set;
 
-    for (int i=1; i<10; i++)
+    for (int i=1; i<2; i++)
     {   ModelParameters case1;
         case1.alpha = "30";
-        case1.n = QString::number(i*0.2+1.2);
+        case1.n = QString::number(i*0.2+1.6);
         case1.dg = "0.5";
         case1.rw = "0";
-        case1.folder = "n_" + QString::number((i*0.2+1.2)*10);
+        case1.folder = "n_" + QString::number((i*0.2+1.6)*10);
         parameter_set[case1.folder] = case1;
     }
 
@@ -100,10 +100,17 @@ omp_set_num_threads(8);
         G.SetName(it->folder.toStdString());
         QTime start_time = QTime::currentTime();
         cout<<it->folder.toStdString() + ", Start time = " + start_time.toString().toStdString()<<endl;
+#ifdef Arash
+        std::string Results_Folder = "/home/arash/Projects/Drywell_Result/Homogeneous/" + it->folder.toStdString();
+        QDir dir("/home/arash/Projects/Drywell_Result/Homogeneous/");
+        std::string SoilDataFolder = "/home/Projects/Drywell_Result/Heterogeneous/";
+#else
         std::string Results_Folder = "/mnt/3rd900/Projects/Drywell_Result/Homogeneous/Test/" + it->folder.toStdString();
-        //std::string Results_Folder = "F:/Projects/Drywell_Result";
         QDir dir("/mnt/3rd900/Projects/Drywell_Result/Homogeneous/Test");
         std::string SoilDataFolder = "/mnt/3rd900/Projects/Drywell_Result/Heterogeneous";
+#endif
+        //std::string Results_Folder = "F:/Projects/Drywell_Result";
+
         if (!dir.exists(it->folder))
         {
             bool res = dir.mkdir(it->folder);
@@ -168,7 +175,8 @@ omp_set_num_threads(8);
             G.cell(nz-1,j)->Boundary.value = 0.4;
         }
     cout<<"7"<<std::endl;
-
+        G.head_mode = Grid::_head_mode::fixed;
+        G.SetProp("epsilon", "0.01");
         G.SetProp("pond_alpha","1000.0");
         G.SetProp("pond_beta","2");
     if (mode == _mode::homogeneous)
@@ -182,9 +190,9 @@ omp_set_num_threads(8);
     cout<<"7.1"<<std::endl;
         G.SetProp("inflow", "/home/arash/Projects/Drywell_Result/inflow_zero.txt");
     cout<<"7.2"<<std::endl;
-        G.SetProp("well_H","0");
+        G.SetProp("well_H","-0.5");
     cout<<"7.3"<<std::endl;
-        G.SetProp("well_H_old","0");
+        G.SetProp("well_H_old","-0.5");
     cout<<"7.4"<<std::endl;
         G.SetProp("r_w",it->rw.toStdString());
     cout<<"7.5"<<std::endl;

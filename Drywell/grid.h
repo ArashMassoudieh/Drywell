@@ -131,6 +131,7 @@ public:
     }
     bool AssignProperty(PropertyGenerator *prop);
     void SetName(std::string _name) {name = _name;};
+    enum class _head_mode {falling, fixed} head_mode = _head_mode::falling;
 private:
     std::vector<std::vector<Cell>> cells;
     std::vector<std::vector<Interface>> interfaces_r;
@@ -148,6 +149,8 @@ private:
     double well_H = 0;
     double well_H_old = 0;
     double r_w = 0;
+    double fixed_well_head;
+    double initial_well_concentration;
     double beta;
     double alpha;
     CTimeSeries<double> inflow;

@@ -74,8 +74,9 @@ void PropertyGenerator::assign_K_gauss(unsigned int i)
 #else
         CMatrix M_inv = Invert(M.M_22);
 #endif
-        mu = dotproduct(M_inv*M.V_21, M.V_RHS);
-        sigma = 1.0 - dotproduct(M_inv*M.V_21, M.V_21);
+        CVector_arma prod = M_inv*M.V_21;
+        mu = dotproduct(prod, M.V_RHS);
+        sigma = 1.0 - dotproduct(prod, M.V_21);
 
         double u = gsl_ran_ugaussian(r);
     double K_gauss = mu + u*sigma;

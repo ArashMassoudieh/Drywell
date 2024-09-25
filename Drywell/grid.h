@@ -55,7 +55,9 @@ public:
     void SetStateVariable(const CVector_arma &X,const _time &t=_time::current);
     void SetStateVariable_TR(const CVector_arma &X,const _time &t=_time::current);
     CMatrix_arma Jacobian(const CVector_arma &X, const double &dt);
+    CMatrix_arma_sp Jacobian_sp(const CVector_arma &X, const double &dt);
     CMatrix_arma Jacobian_TR(const CVector_arma &X, const double &dt);
+    CMatrix_arma_sp Jacobian_TR_sp(const CVector_arma &X, const double &dt);
     double getVal(int i, int j, const std::string &val, const edge &ej);
     double getVal(int i, int j, prop val, const edge& ej);
     bool OneStepSolve(const double &dt);

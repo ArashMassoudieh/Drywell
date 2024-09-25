@@ -494,11 +494,27 @@ CMatrix_arma Grid::Jacobian(const CVector_arma &X, const double &dt)
         CVector_arma X1 = X;
         X1[i]+=1e-6;
         CVector_arma F1 = Residual(X1,dt, true);
-        for (unsigned int j=0; j<X.num; j++)
+        for (unsigned int j=0; j<X.num(); j++)
             M(j,i) = (F1[j]-F_base[j])/1e-6;
     }
     return M;
 }
+
+CMatrix_arma_sp Grid::Jacobian_sp(const CVector_arma &X, const double &dt)
+{
+    CVector_arma F_base = Residual(X,dt,true);
+    CMatrix_arma_sp M(X.getsize(),X.getsize());
+    for (unsigned int i=0; i< X.getsize(); i++)
+    {
+        CVector_arma X1 = X;
+        X1[i]+=1e-6;
+        CVector_arma F1 = Residual(X1,dt, true);
+        for (unsigned int j=0; j<X.num(); j++)
+            M.matr(j,i) = (F1[j]-F_base[j])/1e-6;
+    }
+    return M;
+}
+
 
 CMatrix_arma Grid::Jacobian_TR(const CVector_arma &X, const double &dt)
 {
@@ -509,8 +525,24 @@ CMatrix_arma Grid::Jacobian_TR(const CVector_arma &X, const double &dt)
         CVector_arma X1 = X;
         X1[i]+=1e-6;
         CVector_arma F1 = Residual_TR(X1,dt, true);
-        for (unsigned int j=0; j<X.num; j++)
+        for (unsigned int j=0; j<X.num(); j++)
             M(j,i) = (F1[j]-F_base[j])/1e-6;
+    }
+    return M;
+}
+
+
+CMatrix_arma_sp Grid::Jacobian_TR_sp(const CVector_arma &X, const double &dt)
+{
+    CVector_arma F_base = Residual_TR(X,dt,true);
+    CMatrix_arma_sp M(X.getsize(),X.getsize());
+    for (unsigned int i=0; i< X.getsize(); i++)
+    {
+        CVector_arma X1 = X;
+        X1[i]+=1e-6;
+        CVector_arma F1 = Residual_TR(X1,dt, true);
+        for (unsigned int j=0; j<X.num(); j++)
+            M.matr(j,i) = (F1[j]-F_base[j])/1e-6;
     }
     return M;
 }
@@ -528,10 +560,10 @@ bool Grid::OneStepSolve_no_lamba_correction(const double &dt)
     {
         Solution_State.lambda = 1;
 
-        CMatrix_arma J = Jacobian(X,dt);
+        CMatrix_arma_sp J = Jacobian_sp(X,dt);
         CVector_arma dx = Res/J;
 
-        if (dx.num != X.num)
+        if (dx.num() != X.num())
         {
             Solution_State.err = err;
             return false;
@@ -573,10 +605,10 @@ bool Grid::OneStepSolve_TR(const double &dt)
     {
         Solution_State.lambda_TR = 1;
 
-        CMatrix_arma J = Jacobian_TR(X,dt);
+        CMatrix_arma_sp J = Jacobian_TR_sp(X,dt);
         CVector_arma dx = Res/J;
 
-        if (dx.num != X.num)
+        if (dx.num() != X.num())
         {
             Solution_State.err = err;
             return false;
@@ -623,19 +655,19 @@ bool Grid::OneStepSolve(const double &dt)
         count_error_expanding = 0;
         while (err1>=err_0 && !failed)
         {
-            CMatrix_arma J = Jacobian(X,dt);
+            CMatrix_arma_sp J = Jacobian_sp(X,dt);
             CVector_arma dx = Res/J;
 
-            if (dx.num != X.num)
+            if (dx.num() != X.num())
             {
                 Solution_State.err = err;
                 return false;
             }
 
-            X.writetofile("X_pre.txt");
+            //X.writetofile("X_pre.txt");
             X-= Solution_State.lambda*dx;
-            X.writetofile("X.txt");
-            dx.writetofile("dx.txt");
+            //X.writetofile("X.txt");
+            //dx.writetofile("dx.txt");
 
             Res = Residual(X,dt,true);
             Res.writetofile("Res.txt");
@@ -694,19 +726,19 @@ bool Grid::OneStepSolveLM(const double &dt)
         CMatrix_arma K = (JJT);
         CVector_arma dx = (Transpose(J)*Res)/K;
 
-        if (dx.num != X.num)
+        if (dx.num() != X.num())
         {
             Solution_State.err = err;
             return false;
         }
-        J.writetofile("J.txt");
-        K.writetofile("K.txt");
-        X.writetofile("X_pre.txt");
+        //J.writetofile("J.txt");
+        //K.writetofile("K.txt");
+        //X.writetofile("X_pre.txt");
         X-= dx;
         Res = Residual(X,dt,true);
-        X.writetofile("X.txt");
-        dx.writetofile("dx.txt");
-        Res.writetofile("Res.txt");
+        //X.writetofile("X.txt");
+        //dx.writetofile("dx.txt");
+        //Res.writetofile("Res.txt");
 
         err1=Res.norm2();
 

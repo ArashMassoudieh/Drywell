@@ -59,6 +59,9 @@
     <ClCompile Include="..\..\..\Utilities\Vector_arma.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\Utilities\Matrix_arma_sp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Drywell\cell.h">

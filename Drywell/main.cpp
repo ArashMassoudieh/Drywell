@@ -28,13 +28,13 @@ int main()
 {
     QMap<QString, ModelParameters> parameter_set;
 
-    for (int i=1; i<2; i++)
+    for (int i=1; i<4; i++)
     {   ModelParameters case1;
         case1.alpha = "30";
-        case1.n = QString::number(i*0.2+1.6);
+        case1.n = QString::number(1.8);
         case1.dg = "0.5";
         case1.rw = "0";
-        case1.folder = "n_" + QString::number((i*0.2+1.6)*10);
+        case1.folder = "Realization_" + QString::number(i);
         parameter_set[case1.folder] = case1;
     }
 
@@ -84,14 +84,14 @@ int main()
     parameter_set[case5.folder] = case5;
     */
     enum class _mode {homogeneous, heterogeneous};
-    _mode mode = _mode::homogeneous;
+    _mode mode = _mode::heterogeneous;
     int nz=20;
     int nr=20;
     double dt0 = 0.001;
     double t_end = 1;
 omp_set_num_threads(8);
 
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i=0; i<parameter_set.count(); i++)
     {
         QMap<QString, ModelParameters>::iterator it = parameter_set.begin()+i;
@@ -105,9 +105,9 @@ omp_set_num_threads(8);
         QDir dir("/home/arash/Projects/Drywell_Result/Homogeneous/");
         std::string SoilDataFolder = "/home/Projects/Drywell_Result/Heterogeneous/";
 #else
-        std::string Results_Folder = "/mnt/3rd900/Projects/Drywell_Result/Homogeneous/Test/" + it->folder.toStdString();
-        QDir dir("/mnt/3rd900/Projects/Drywell_Result/Homogeneous/Test");
-        std::string SoilDataFolder = "/mnt/3rd900/Projects/Drywell_Result/Heterogeneous";
+        std::string Results_Folder = "C:/Projects/Drywell_Result/Heterogeneous/" + it->folder.toStdString();
+        QDir dir("C:/Projects/Drywell_Result/Heterogeneous");
+        std::string SoilDataFolder = "C:/Projects/Drywell_Result/Heterogeneous";
 #endif
         //std::string Results_Folder = "F:/Projects/Drywell_Result";
 
